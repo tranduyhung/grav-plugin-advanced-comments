@@ -9,6 +9,7 @@
 {% endblock %}
 
 {% block content %}
+    {% set days = grav.config.plugins['advanced-comments'].admin_comment_day_limit %}
     <style>
         td.comments-actions {
             flex: 0.1;
@@ -44,38 +45,42 @@
     <script>
         $(function() {
             var currentPage = 0;
+            var totalRetrieved = {{ grav.twig.comments.comments|length }};
 
             $(document).on('click tap', '.js__load-more', function(event) {
-               $.getJSON(window.location + '/page:' + (currentPage + 1))
-                .success(function(response) {
-                    currentPage = parseInt(response.page);
+                $.ajax({
+                    url: window.location + '/page:' + (currentPage + 1),
+                    dataType: 'json',
+                    success: function(response) {
+                        currentPage = parseInt(response.page);
 
-                    response.comments.forEach(function(comment) {
-                        $('.js__comments-container').append('<tr>' +
-                                '<td class="e author">' + comment.author + '</td>' +
-                                '<td class="v comment">' + comment.text + '</td>' +
-                                '<td class="v details"><strong>Page</strong>: ' + comment.pageTitle + '<br>' +
-                                '<strong>Date</strong>: ' + comment.date + '</td>' +
-                            '</tr>');
-                    })
+                        response.comments.forEach(function(comment) {
+                            $('.js__comments-container').append('<tr>' +
+                                    '<td class="e author">' + comment.author + '</td>' +
+                                    '<td class="v comment">' + comment.text + '</td>' +
+                                    '<td class="v details"><strong>Page</strong>: ' + comment.pageTitle + '<br>' +
+                                    '<strong>Date</strong>: ' + comment.date + '</td>' +
+                                '</tr>');
+                        })
 
-                    var totalRetrieved = response.totalRetrieved * (parseInt(response.page) + 1);
+                        totalRetrieved += response.totalRetrieved;
 
-                    $('.totalRetrieved').html(totalRetrieved);
-                    $('.totalAvailable').html(response.totalAvailable);
+                        $('.totalRetrieved').html(totalRetrieved);
+                        $('.totalAvailable').html(response.totalAvailable);
 
-                    if (totalRetrieved == response.totalAvailable) {
-                        $('.js__load-more').hide();
+                        if (totalRetrieved == response.totalAvailable) {
+                            $('.js__load-more').hide();
+                        }
+                    },
+                    error: function() {
+                        alert('Unexpected error');
                     }
-                })
-                .error(function() {
-                    alert('Unexpected error');
                 });
             });
         });
     </script>
 
-    <h1>Comments in the last 7 days</h1>
+    <h1>Comments in the last {{ days }} days</h1>
 
     <div class="admin-block">
         <table>
@@ -87,8 +92,13 @@
                 </tr>
                 {% for comment in grav.twig.comments.comments %}
                     <tr>
-                        <td class="author">{{comment.author}}</td>
-                        <td class="comment">{{comment.text}}</td>
+                        <td class="author">
+                            {{comment.author}}
+                            {% if comment.email %}
+                                <br>{{ comment.email }}
+                            {% endif %}
+                        </td>
+                        <td class="comment">{{comment.text|striptags('<p><b><u><i><a><br>')|raw}}</td>
                         <td class="details"><strong>Page</strong>: {{comment.pageTitle}}<br>
                         <strong>Date</strong>: {{comment.date}}</td>
                     </tr>

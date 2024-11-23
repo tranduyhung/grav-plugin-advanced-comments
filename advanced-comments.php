@@ -277,12 +277,13 @@ class AdvancedCommentsPlugin extends Plugin
         $itrItr = new \RecursiveIteratorIterator($dirItr, \RecursiveIteratorIterator::SELF_FIRST);
         $filesItr = new \RegexIterator($itrItr, '/^.+\.yaml$/i');
 
-        // Collect files if modified in the last 7 days
+        $days = $this->grav['config']->get('plugins.advanced-comments.admin_comment_day_limit', 7);
+
         foreach ($filesItr as $filepath => $file) {
             $modifiedDate = $file->getMTime();
-            $sevenDaysAgo = time() - (7 * 24 * 60 * 60);
+            $daysAgo = time() - ($days * 24 * 60 * 60);
 
-            if ($modifiedDate < $sevenDaysAgo) {
+            if ($modifiedDate < $daysAgo) {
                 continue;
             }
 
@@ -311,7 +312,7 @@ class AdvancedCommentsPlugin extends Plugin
 
     private function getLastComments($page = 0)
     {
-        $number = 30;
+        $number = $this->grav['config']->get('plugins.advanced-comments.admin_pagination_limit', 20);
 
         $files = [];
         $files = $this->getFilesOrderedByModifiedDate();
@@ -368,9 +369,11 @@ class AdvancedCommentsPlugin extends Plugin
         $comments = isset($data['comments']) ? $data['comments'] : null;
 
         // Remove pending and disapproved comments..
-        foreach ($comments as $k => $comment) {
-            if (!isset($comment['approved']) || $comment['approved'] != 1) {
-                unset($comments[$k]);
+        if ($comments) {
+            foreach ($comments as $k => $comment) {
+                if (!isset($comment['approved']) || $comment['approved'] != 1) {
+                    unset($comments[$k]);
+                }
             }
         }
 

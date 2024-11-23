@@ -43,3 +43,23 @@ form:
       label: PLUGIN_ADVANCED_COMMENTS.DISABLE_ON_ROUTES
       placeholder_value: PLUGIN_ADVANCED_COMMENTS.ROUTE_PLACEHOLDER
       value_only: true
+
+    admin_comment_day_limit:
+      type: text
+      size: x-small
+      label: PLUGIN_ADVANCED_COMMENTS.ADMIN_COMMENT_DAY_LIMIT
+      help: PLUGIN_ADVANCED_COMMENTS.ADMIN_COMMENT_DAY_LIMIT_HELP
+      default: 7
+      validate:
+          type: number
+          min: 1
+
+    admin_pagination_limit:
+      type: text
+      size: x-small
+      label: PLUGIN_ADVANCED_COMMENTS.ADMIN_PAGINATION_LIMIT
+      help: PLUGIN_ADVANCED_COMMENTS.ADMIN_PAGINATION_LIMIT_HELP
+      default: 20
+      validate:
+          type: number
+          min: 1

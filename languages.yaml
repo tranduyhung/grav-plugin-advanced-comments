@@ -22,6 +22,10 @@ en:
     ENABLE_ON_ROUTES: "Enable on routes"
     DISABLE_ON_ROUTES: "Disable on routes"
     ROUTE_PLACEHOLDER: "/your-route-here"
+    ADMIN_PAGINATION_LIMIT: Pagination limit on admin side
+    ADMIN_PAGINATION_LIMIT_HELP: Maximum number of comments returned in the admin area's comment list.
+    ADMIN_COMMENT_DAY_LIMIT: Admin comment list's day limit
+    ADMIN_COMMENT_DAY_LIMIT_HELP: Number of days to get the comments the admin area's comment list.
 
 de:
   PLUGIN_ADVANCED_COMMENTS:
