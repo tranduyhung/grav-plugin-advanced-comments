@@ -12,23 +12,23 @@ form:
     name: comments
     fields:
         - name: name
-          label: PLUGIN_COMMENTS.NAME_LABEL
-          placeholder: PLUGIN_COMMENTS.NAME_PLACEHOLDER
+          label: PLUGIN_ADVANCED_COMMENTS.NAME_LABEL
+          placeholder: PLUGIN_ADVANCED_COMMENTS.NAME_PLACEHOLDER
           autocomplete: on
           type: text
           validate:
             required: true
 
         - name: email
-          label: PLUGIN_COMMENTS.EMAIL_LABEL
-          placeholder: PLUGIN_COMMENTS.EMAIL_PLACEHOLDER
+          label: PLUGIN_ADVANCED_COMMENTS.EMAIL_LABEL
+          placeholder: PLUGIN_ADVANCED_COMMENTS.EMAIL_PLACEHOLDER
           type: email
           validate:
             required: true
 
         - name: text
-          label: PLUGIN_COMMENTS.MESSAGE_LABEL
-          placeholder: PLUGIN_COMMENTS.MESSAGE_PLACEHOLDER
+          label: PLUGIN_ADVANCED_COMMENTS.MESSAGE_LABEL
+          placeholder: PLUGIN_ADVANCED_COMMENTS.MESSAGE_PLACEHOLDER
           type: textarea
           validate:
             required: true
@@ -62,16 +62,14 @@ form:
 
     buttons:
         - type: submit
-          value: PLUGIN_COMMENTS.SUBMIT_COMMENT_BUTTON_TEXT
+          value: PLUGIN_ADVANCED_COMMENTS.SUBMIT_COMMENT_BUTTON_TEXT
 
     process:
 #        - captcha:
 #            recaptcha_secret: ej32oiej23oiej32oijeoi32jeio32je
         - email:
-            subject: PLUGIN_COMMENTS.EMAIL_NEW_COMMENT_SUBJECT
+            subject: PLUGIN_ADVANCED_COMMENTS.EMAIL_NEW_COMMENT_SUBJECT
             body: "{% include 'forms/data.html.twig' %}"
         - addComment:
-        - message: PLUGIN_COMMENTS.THANK_YOU_MESSAGE
+        - message: PLUGIN_ADVANCED_COMMENTS.THANK_YOU_MESSAGE
         - reset: true
-
-

@@ -439,7 +439,7 @@ class AdvancedCommentsPlugin extends Plugin
      */
     public function onAdminMenu()
     {
-        $this->grav['twig']->plugins_hooked_nav['PLUGIN_COMMENTS.COMMENTS'] = ['route' => $this->route, 'icon' => 'fa-file-text'];
+        $this->grav['twig']->plugins_hooked_nav['PLUGIN_ADVANCED_COMMENTS.COMMENTS'] = ['route' => $this->route, 'icon' => 'fa-file-text'];
     }
 
     /**

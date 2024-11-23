@@ -31,3 +31,15 @@ form:
         0: PLUGIN_ADMIN.DISABLED
       validate:
         type: bool
+
+    enable_on_routes:
+      type: array
+      label: PLUGIN_ADVANCED_COMMENTS.ENABLE_ON_ROUTES
+      placeholder_value: PLUGIN_ADVANCED_COMMENTS.ROUTE_PLACEHOLDER
+      value_only: true
+
+    disable_on_routes:
+      type: array
+      label: PLUGIN_ADVANCED_COMMENTS.DISABLE_ON_ROUTES
+      placeholder_value: PLUGIN_ADVANCED_COMMENTS.ROUTE_PLACEHOLDER
+      value_only: true

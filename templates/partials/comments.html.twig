@@ -1,7 +1,7 @@
 {% if enable_comments_plugin %}
     {% set scope = scope ?: 'data.' %}
 
-    <h3>{{'PLUGIN_COMMENTS.ADD_COMMENT'|t}}</h3>
+    <h3>{{'PLUGIN_ADVANCED_COMMENTS.ADD_COMMENT'|t}}</h3>
 
     <form name="{{ grav.config.plugins['advanced-comments'].form.name }}"
           action="{{ grav.config.plugins['advanced-comments'].form.action ?  base_url ~ grav.config.plugins.advanced_comments.form.action : page.url }}"
@@ -43,7 +43,7 @@
 
     {% if grav.twig.comments|length %}
 
-        <h3>{{'PLUGIN_COMMENTS.COMMENTS'|t}}</h3>
+        <h3>{{'PLUGIN_ADVANCED_COMMENTS.COMMENTS'|t}}</h3>
 
         <table>
             {% for comment in comments|array_reverse %}
@@ -51,7 +51,7 @@
                 <td>
                     {{comment.text|striptags('<p><b><u><i><a><br>')|raw}}
                     <br />
-                    {{'PLUGIN_COMMENTS.WRITTEN_ON'|t}} {{comment.date|e}} {{'PLUGIN_COMMENTS.BY'|t}} {{comment.author}}
+                    {{'PLUGIN_ADVANCED_COMMENTS.WRITTEN_ON'|t}} {{comment.date|e}} {{'PLUGIN_ADVANCED_COMMENTS.BY'|t}} {{comment.author}}
                 </td>
             </tr>
             {% endfor %}

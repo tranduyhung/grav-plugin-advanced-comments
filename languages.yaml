@@ -1,5 +1,5 @@
 en:
-  PLUGIN_COMMENTS:
+  PLUGIN_ADVANCED_COMMENTS:
     ADD_COMMENT: Add a comment
     COMMENTS: Comments
     EMAIL_NOT_CONFIGURED: Email not configured
@@ -19,9 +19,12 @@ en:
     SUBMIT_COMMENT_BUTTON_TEXT: "Submit"
     EMAIL_NEW_COMMENT_SUBJECT: "[New Comment] from {{ form.value.name|e }}"
     THANK_YOU_MESSAGE: "Thank you for your comment. We will review it and notify you once it is approved."
+    ENABLE_ON_ROUTES: "Enable on routes"
+    DISABLE_ON_ROUTES: "Disable on routes"
+    ROUTE_PLACEHOLDER: "/your-route-here"
 
 de:
-  PLUGIN_COMMENTS:
+  PLUGIN_ADVANCED_COMMENTS:
     ADD_COMMENT: Kommentar hinzufügen
     COMMENTS: Kommentare
     EMAIL_NOT_CONFIGURED: Email nicht konfiguriert
@@ -43,7 +46,7 @@ de:
     THANK_YOU_MESSAGE: "Vielen Dank für den Kommentar!"
 
 es:
-  PLUGIN_COMMENTS:
+  PLUGIN_ADVANCED_COMMENTS:
     ADD_COMMENT: Agregar un comentario
     COMMENTS: Comentarios
     EMAIL_NOT_CONFIGURED: El Email no está configurado
@@ -65,7 +68,7 @@ es:
     THANK_YOU_MESSAGE: "Gracias por escribir su comentario!"
 
 fr:
-  PLUGIN_COMMENTS:
+  PLUGIN_ADVANCED_COMMENTS:
     ADD_COMMENT: Ajouter un commentaire
     COMMENTS: Commentaires
     EMAIL_NOT_CONFIGURED: E-mail non configuré
@@ -87,7 +90,7 @@ fr:
     THANK_YOU_MESSAGE: "Merci d'avoir rédigé votre commentaire !"
 
 hr:
-  PLUGIN_COMMENTS:
+  PLUGIN_ADVANCED_COMMENTS:
     ADD_COMMENT: Dodaj komentar
     COMMENTS: Komentari
     EMAIL_NOT_CONFIGURED: Email adresa nije podešena
@@ -109,7 +112,7 @@ hr:
     THANK_YOU_MESSAGE: "Hvala Vam što ste napisali svoj komentar!"
 
 it:
-  PLUGIN_COMMENTS:
+  PLUGIN_ADVANCED_COMMENTS:
     ADD_COMMENT: Aggiungi un commento
     COMMENTS: Commenti
     EMAIL_NOT_CONFIGURED: Email non configurata
@@ -131,7 +134,7 @@ it:
     THANK_YOU_MESSAGE: "Grazie per il tuo commento!"
 
 ja:
-  PLUGIN_COMMENTS:
+  PLUGIN_ADVANCED_COMMENTS:
     ADD_COMMENT: コメントする
     COMMENTS: コメント
     EMAIL_NOT_CONFIGURED: メールアドレスが設定さていません
@@ -153,7 +156,7 @@ ja:
     THANK_YOU_MESSAGE: "コメントありがとうございます！"
 
 nl:
-  PLUGIN_COMMENTS:
+  PLUGIN_ADVANCED_COMMENTS:
     ADD_COMMENT: Reageer
     COMMENTS: Reacties
     EMAIL_NOT_CONFIGURED: Email niet geconfigureerd
@@ -175,7 +178,7 @@ nl:
     THANK_YOU_MESSAGE: "Bedankt voor je reactie!"
 
 pl:
-  PLUGIN_COMMENTS:
+  PLUGIN_ADVANCED_COMMENTS:
     ADD_COMMENT: Dodaj komentarz
     COMMENTS: Komentarzy
     EMAIL_NOT_CONFIGURED: Email jest nie skofigurowany
@@ -188,7 +191,7 @@ pl:
     BY: przez
 
 ru:
-  PLUGIN_COMMENTS:
+  PLUGIN_ADVANCED_COMMENTS:
     ADD_COMMENT: Добавить комментарий
     COMMENTS: Комментарии
     EMAIL_NOT_CONFIGURED: Email не настроен
@@ -210,7 +213,7 @@ ru:
     THANK_YOU_MESSAGE: "Благодарим за ваш комментарий!"
 
 pt-br:
-  PLUGIN_COMMENTS:
+  PLUGIN_ADVANCED_COMMENTS:
     ADD_COMMENT: Escreva um comentário
     COMMENTS: Comentários
     EMAIL_NOT_CONFIGURED: E-mail não configurado
@@ -232,7 +235,7 @@ pt-br:
     THANK_YOU_MESSAGE: "Obrigada por enviar seu comentário!"
 
 ro:
-  PLUGIN_COMMENTS:
+  PLUGIN_ADVANCED_COMMENTS:
     ADD_COMMENT: 'Adăugați un comentariu'
     COMMENTS: 'Comentarii'
     EMAIL_NOT_CONFIGURED: 'Adresa de email nu este configurată'
@@ -254,7 +257,7 @@ ro:
     THANK_YOU_MESSAGE: "Vă mulțumim pentru comentariu!"
 
 no:
-  PLUGIN_COMMENTS:
+  PLUGIN_ADVANCED_COMMENTS:
     ADD_COMMENT: Skriv en kommentar
     COMMENTS: Kommentarer
     EMAIL_NOT_CONFIGURED: Epost er ikke konfigurert
