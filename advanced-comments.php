@@ -1,4 +1,5 @@
 <?php
+
 namespace Grav\Plugin;
 
 use Grav\Common\Filesystem\Folder;
@@ -14,9 +15,9 @@ use RocketTheme\Toolbox\File\File;
 use RocketTheme\Toolbox\Event\Event;
 use Symfony\Component\Yaml\Yaml;
 
-class CommentsPlugin extends Plugin
+class AdvancedCommentsPlugin extends Plugin
 {
-    protected $route = 'comments';
+    protected $route = 'advanced-comments';
     protected $enable = false;
     protected $comments_cache_id;
 
@@ -48,7 +49,7 @@ class CommentsPlugin extends Plugin
         if ($this->enable) {
             $header = $page->header();
             if (!isset($header->form)) {
-                $header->form = $this->grav['config']->get('plugins.comments.form');
+                $header->form = $this->grav['config']->get('plugins.advanced-comments.form');
                 $page->header($header);
             }
         }
@@ -65,14 +66,15 @@ class CommentsPlugin extends Plugin
 
         if ($this->enable) {
             if (!isset($header->form)) {
-                $header->form = $this->grav['config']->get('plugins.comments.form');
+                $header->form = $this->grav['config']->get('plugins.advanced-comments.form');
             }
         }
 
         $event->header = $header;
     }
 
-    public function onTwigSiteVariables() {
+    public function onTwigSiteVariables()
+    {
         // Old way
         $enabled = $this->enable;
         $comments = $this->fetchComments();
@@ -83,17 +85,17 @@ class CommentsPlugin extends Plugin
         // New way
         $this->grav['twig']->twig_vars['enable_comments_plugin'] = $enabled;
         $this->grav['twig']->twig_vars['comments'] = $comments;
-
     }
 
     /**
      * Determine if the plugin should be enabled based on the enable_on_routes and disable_on_routes config options
      */
-    private function calculateEnable() {
+    private function calculateEnable()
+    {
         $uri = $this->grav['uri'];
 
-        $disable_on_routes = (array) $this->config->get('plugins.comments.disable_on_routes');
-        $enable_on_routes = (array) $this->config->get('plugins.comments.enable_on_routes');
+        $disable_on_routes = (array) $this->config->get('plugins.advanced-comments.disable_on_routes');
+        $enable_on_routes = (array) $this->config->get('plugins.advanced-comments.enable_on_routes');
 
         $path = $uri->path();
 
@@ -101,7 +103,7 @@ class CommentsPlugin extends Plugin
             if (in_array($path, $enable_on_routes)) {
                 $this->enable = true;
             } else {
-                foreach($enable_on_routes as $route) {
+                foreach ($enable_on_routes as $route) {
                     if (Utils::startsWith($path, $route)) {
                         $this->enable = true;
                         break;
@@ -254,7 +256,8 @@ class CommentsPlugin extends Plugin
         }
     }
 
-    private function getFilesOrderedByModifiedDate($path = '') {
+    private function getFilesOrderedByModifiedDate($path = '')
+    {
         $files = [];
 
         if (!$path) {
@@ -297,21 +300,22 @@ class CommentsPlugin extends Plugin
         }
 
         // Order files by last modified date
-        usort($files, function($a, $b) {
+        usort($files, function ($a, $b) {
             return !($a->modifiedDate > $b->modifiedDate);
         });
 
         return $files;
     }
 
-    private function getLastComments($page = 0) {
+    private function getLastComments($page = 0)
+    {
         $number = 30;
 
         $files = [];
         $files = $this->getFilesOrderedByModifiedDate();
         $comments = [];
 
-        foreach($files as $file) {
+        foreach ($files as $file) {
             $data = Yaml::parse(file_get_contents($file->filePath));
 
             for ($i = 0; $i < count($data['comments']); $i++) {
@@ -327,7 +331,7 @@ class CommentsPlugin extends Plugin
         }
 
         // Order comments by date
-        usort($comments, function($a, $b) {
+        usort($comments, function ($a, $b) {
             return !($a['timestamp'] > $b['timestamp']);
         });
 
@@ -346,7 +350,8 @@ class CommentsPlugin extends Plugin
     /**
      * Return the comments associated to the current route
      */
-    private function fetchComments() {
+    private function fetchComments()
+    {
         $cache = $this->grav['cache'];
         //search in cache
         if ($comments = $cache->fetch($this->comments_cache_id)) {
@@ -367,13 +372,14 @@ class CommentsPlugin extends Plugin
     /**
      * Return the latest commented pages
      */
-    private function fetchPages() {
+    private function fetchPages()
+    {
         $files = [];
         $files = $this->getFilesOrderedByModifiedDate();
 
         $pages = [];
 
-        foreach($files as $file) {
+        foreach ($files as $file) {
             $pages[] = [
                 'title' => $file->data['title'],
                 'commentsCount' => count($file->data['comments']),
@@ -388,7 +394,8 @@ class CommentsPlugin extends Plugin
     /**
      * Given a data file route, return the YAML content already parsed
      */
-    private function getDataFromFilename($fileRoute) {
+    private function getDataFromFilename($fileRoute)
+    {
 
         //Single item details
         $fileInstance = File::instance(DATA_DIR . 'comments/' . $fileRoute);

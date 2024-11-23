@@ -1,17 +1,17 @@
-name: Comments
+name: Advanced Comments
 type: plugin
-slug: comments
-version: 1.2.8
-description: Adds a commenting functionality to your site
+slug: advanced-comments
+version: 2.0.0
+description: A fork of Comments plugin.
 icon: comment
 author:
-  name: Team Grav
-  email: devs@getgrav.org
-  url: http://getgrav.org
-homepage: https://github.com/getgrav/grav-plugin-comments
+  name: Hung Tran
+  email: flatfiledeveloper@gmail.com
+  url: https://flatfiledeveloper.com
+homepage: https://github.com/tranduyhung/grav-plugin-advanced-comments
 keywords: guestbook, plugin
-bugs: https://github.com/getgrav/grav-plugin-comments/issues
-readme: https://github.com/getgrav/grav-plugin-comments/blob/develop/README.md
+bugs: https://github.com/tranduyhung/grav-plugin-advanced-comments/issues
+readme: https://github.com/tranduyhung/grav-plugin-advanced-comments/main/README.md
 license: MIT
 
 dependencies:
