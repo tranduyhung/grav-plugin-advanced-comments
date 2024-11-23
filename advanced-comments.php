@@ -232,7 +232,8 @@ class AdvancedCommentsPlugin extends Plugin
                         'text' => $text,
                         'date' => date('D, d M Y H:i:s', time()),
                         'author' => $name,
-                        'email' => $email
+                        'email' => $email,
+                        'approved' => 0,
                     ];
                 } else {
                     $data = array(
@@ -242,7 +243,8 @@ class AdvancedCommentsPlugin extends Plugin
                             'text' => $text,
                             'date' => date('D, d M Y H:i:s', time()),
                             'author' => $name,
-                            'email' => $email
+                            'email' => $email,
+                            'approved' => 0,
                         ])
                     );
                 }
@@ -364,6 +366,14 @@ class AdvancedCommentsPlugin extends Plugin
 
         $data = $this->getDataFromFilename($filename);
         $comments = isset($data['comments']) ? $data['comments'] : null;
+
+        // Remove pending and disapproved comments..
+        foreach ($comments as $k => $comment) {
+            if (!isset($comment['approved']) || $comment['approved'] != 1) {
+                unset($comments[$k]);
+            }
+        }
+
         //save to cache if enabled
         $cache->save($this->comments_cache_id, $comments);
         return $comments;

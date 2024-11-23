@@ -18,7 +18,7 @@ en:
     MESSAGE_PLACEHOLDER: "Enter your comment"
     SUBMIT_COMMENT_BUTTON_TEXT: "Submit"
     EMAIL_NEW_COMMENT_SUBJECT: "[New Comment] from {{ form.value.name|e }}"
-    THANK_YOU_MESSAGE: "Thank you for writing your comment!"
+    THANK_YOU_MESSAGE: "Thank you for your comment. We will review it and notify you once it is approved."
 
 de:
   PLUGIN_COMMENTS:
