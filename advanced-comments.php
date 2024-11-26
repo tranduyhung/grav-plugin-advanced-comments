@@ -145,8 +145,6 @@ class AdvancedCommentsPlugin extends Plugin
      */
     public function initializeAdmin()
     {
-        /** @var Uri $uri */
-        $uri = $this->grav['uri'];
 
         $this->enable([
             'onTwigTemplatePaths' => ['onTwigAdminTemplatePaths', 0],
@@ -154,20 +152,105 @@ class AdvancedCommentsPlugin extends Plugin
             'onDataTypeExcludeFromDataManagerPluginHook' => ['onDataTypeExcludeFromDataManagerPluginHook', 0],
         ]);
 
+        $grav = $this->grav;
+        $uri = $grav['uri'];
+
         if (strpos($uri->path(), $this->config->get('plugins.admin.route') . '/' . $this->route) === false) {
             return;
         }
 
-        $page = $this->grav['uri']->param('page');
+        $language = $grav['language'];
+
+        if (strtolower($_SERVER['REQUEST_METHOD']) === 'post') {
+            if (isset($_POST['admin-nonce'])) {
+                $nonce = $_POST['admin-nonce'];
+            } else {
+                $nonce = $uri->param('admin-nonce');
+            }
+
+            if (!$nonce || !Utils::verifyNonce($nonce, 'admin-form')) {
+                echo json_encode([
+                    'status'    => 'error',
+                    'message'   => $language->translate('PLUGIN_ADMIN.INVALID_SECURITY_TOKEN'),
+                ]);
+
+                exit;
+            }
+
+            $page = $_POST['page'] ?? null;
+            $index = $_POST['index'] ?? null;
+
+            if ($page === null || $index === null) {
+                echo json_encode([
+                    'status'    => 'error',
+                    'message'   => $language->translate('PLUGIN_ADVANCED_COMMENTS.COMMENT_NOT_FOUND'),
+                ]);
+
+                exit;
+            }
+
+            $filePath = DATA_DIR . 'comments' . $page;
+
+            if (!$filePath) {
+                echo json_encode([
+                    'status'    => 'error',
+                    'message'   => $language->translate('PLUGIN_ADVANCED_COMMENTS.COMMENT_NOT_FOUND'),
+                ]);
+
+                exit;
+            }
+
+            $file = File::instance($filePath);
+            $data = Yaml::parse($file->content());
+
+            if (!isset($data['comments'][$index])) {
+                echo json_encode([
+                    'status'    => 'error',
+                    'message'   => $language->translate('PLUGIN_ADVANCED_COMMENTS.COMMENT_NOT_FOUND'),
+                ]);
+
+                exit;
+            }
+
+            $comment = $data['comments'][$index];
+            $comment['text'] = $_POST['text'] ?? '';
+            $comment['author'] = $_POST['author'] ?? '';
+            $comment['email'] = $_POST['email'] ?? '';
+
+            $data['comments'][$index] = $comment;
+
+            $file->save(Yaml::dump($data));
+
+            echo json_encode([
+                'status'    => 'success',
+                'message'   => $language->translate('PLUGIN_ADVANCED_COMMENTS.COMMENT_WAS_SAVED'),
+                'data'      => $comment,
+            ]);
+
+            exit;
+        }
+
+        $page = $uri->query('page');
+        $index = $uri->query('index');
+
+        if ($page != '' && $index != '') {
+            echo json_encode([
+                'comment' => $this->getComment($page, $index)
+            ]);
+
+            exit;
+        }
+
+        $page = $uri->param('page');
         $comments = $this->getLastComments($page);
 
         if ($page > 0) {
             echo json_encode($comments);
-            exit();
+            exit;
         }
 
-        $this->grav['twig']->comments = $comments;
-        $this->grav['twig']->pages = $this->fetchPages();
+        $grav['twig']->comments = $comments;
+        $grav['twig']->pages = $this->fetchPages();
     }
 
     /**
@@ -258,6 +341,21 @@ class AdvancedCommentsPlugin extends Plugin
         }
     }
 
+    private function getComment($page, $index)
+    {
+        $path = DATA_DIR . 'comments' . $page;
+
+        if (!file_exists($path)) {
+            return null;
+        }
+
+        $data = Yaml::parse(file_get_contents($path));
+
+        $comment = $data['comments'][$index] ?? null;
+
+        return $comment;
+    }
+
     private function getFilesOrderedByModifiedDate($path = '')
     {
         $files = [];
@@ -277,15 +375,8 @@ class AdvancedCommentsPlugin extends Plugin
         $itrItr = new \RecursiveIteratorIterator($dirItr, \RecursiveIteratorIterator::SELF_FIRST);
         $filesItr = new \RegexIterator($itrItr, '/^.+\.yaml$/i');
 
-        $days = $this->grav['config']->get('plugins.advanced-comments.admin_comment_day_limit', 7);
-
         foreach ($filesItr as $filepath => $file) {
             $modifiedDate = $file->getMTime();
-            $daysAgo = time() - ($days * 24 * 60 * 60);
-
-            if ($modifiedDate < $daysAgo) {
-                continue;
-            }
 
             $files[] = (object)array(
                 "modifiedDate" => $modifiedDate,
@@ -318,16 +409,26 @@ class AdvancedCommentsPlugin extends Plugin
         $files = $this->getFilesOrderedByModifiedDate();
         $comments = [];
 
+        $days = $this->grav['config']->get('plugins.advanced-comments.admin_comment_day_limit', 7);
+        $daysAgo = time() - ($days * 24 * 60 * 60);
+
         foreach ($files as $file) {
             $data = Yaml::parse(file_get_contents($file->filePath));
 
             for ($i = 0; $i < count($data['comments']); $i++) {
                 $commentTimestamp = \DateTime::createFromFormat('D, d M Y H:i:s', $data['comments'][$i]['date'])->getTimestamp();
 
+                if ($commentTimestamp < $daysAgo) {
+                    continue;
+                }
+
                 $data['comments'][$i]['pageTitle'] = $data['title'];
                 $data['comments'][$i]['filePath'] = $file->filePath;
                 $data['comments'][$i]['timestamp'] = $commentTimestamp;
+                $data['comments'][$i]['page'] = str_replace(DATA_DIR . 'comments', '', $file->filePath);
+                $data['comments'][$i]['index'] = $i;
             }
+
             if (count($data['comments'])) {
                 $comments = array_merge($comments, $data['comments']);
             }

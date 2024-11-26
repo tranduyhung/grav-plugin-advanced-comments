@@ -40,26 +40,34 @@
         }
 
         .button:active { margin: 0 auto;}
+
+        #commentForm .fa-spin {
+            display: none;
+        }
     </style>
 
     <script>
         $(function() {
             var currentPage = 0;
             var totalRetrieved = {{ grav.twig.comments.comments|length }};
+            var currentUri = '{{ grav.config.plugins.admin.route }}/advanced-comments';
 
             $(document).on('click tap', '.js__load-more', function(event) {
                 $.ajax({
-                    url: window.location + '/page:' + (currentPage + 1),
+                    url: currentUri + '/page:' + (currentPage + 1),
                     dataType: 'json',
                     success: function(response) {
                         currentPage = parseInt(response.page);
 
                         response.comments.forEach(function(comment) {
-                            $('.js__comments-container').append('<tr>' +
+                            $('.js__comments-container').append('<tr data-page="' + comment.page + '" data-index="' + comment.index + '">' +
                                     '<td class="e author">' + comment.author + '</td>' +
                                     '<td class="v comment">' + comment.text + '</td>' +
                                     '<td class="v details"><strong>Page</strong>: ' + comment.pageTitle + '<br>' +
                                     '<strong>Date</strong>: ' + comment.date + '</td>' +
+                                    '<td></td>' +
+                                    '<td><button type="button" class="button comment-view-button" data-page="' + comment.page + '" data-index="' + comment.index + '">' +
+                                    '<i class="fa fa-eye"></i> {{ 'PLUGIN_ADVANCED_COMMENTS.VIEW'|t }}' + '</button></td>' +
                                 '</tr>');
                         })
 
@@ -77,30 +85,165 @@
                     }
                 });
             });
+
+            $(document).on('click tap', '.comment-view-button', function(e) {
+                let page = $(e.target).data('page');
+                let index = $(e.target).data('index');
+
+                if (typeof(page) == 'undefined' || typeof(index) == 'undefined') {
+                    return;
+                }
+
+                let modal = $('[data-remodal-id="commentModal"]');
+
+                modal.find('.grav-loading').show();
+                modal.find('.comment-form, .button-bar').hide();
+                $.remodal.lookup[modal.data('remodal')].open();
+
+                let url = currentUri + '?page=' + encodeURIComponent(page) + '&index=' + index;
+
+                $.ajax({
+                    url: url,
+                    dataType: 'json',
+                    success: function(res) {
+                        modal.find('.grav-loading').hide();
+                        modal.find('.button-bar').show();
+
+                        if (!res.comment) {
+                            modal.find('.comment-form, .comment-save-button').hide();
+                            modal.find('.error-message').html('<p>{{ 'PLUGIN_ADVANCED_COMMENTS.COMMENT_NOT_FOUND'|t }}</p>');
+
+                            return;
+                        }
+
+                        let comment = res.comment;
+
+                        modal.find('input[name="author"]').val(comment.author);
+                        modal.find('input[name="email"]').val(comment.email);
+                        modal.find('textarea[name="text"]').val(comment.text);
+                        modal.find('input[name="page"]').val(page);
+                        modal.find('input[name="index"]').val(index);
+
+                        modal.find('.comment-form, .comment-save-button').show();
+                    }
+                });
+            });
+
+            $(document).on('click tap', '.comment-save-button', function(e) {
+                let form = $('#commentForm');
+                let modal = $('[data-remodal-id="commentModal"]');
+                let saveButton = $(this);
+                let closeButton = modal.find('.comment-close-button');
+
+                closeButton.hide();
+
+                modal.find('.comment-save-button .fa').each(function(i, e) {
+                    let icon = $(e);
+
+                    if (icon.hasClass('fa-spin')) {
+                        icon.attr('style', 'display: inline-block');
+                    } else {
+                        icon.hide();
+                    }
+                });
+
+                saveButton.attr('disabled', 'disabled');
+
+                $.ajax({
+                    url: currentUri,
+                    method: 'post',
+                    dataType: 'json',
+                    data: form.serialize(),
+                    success: function(res) {
+                        if (typeof(res.status) != 'undefined' && res.status == 'success') {
+                            $.remodal.lookup[modal.data('remodal')].close();
+                        } else {
+                            resetModal();
+                        }
+
+                        if (typeof(res.message) != 'undefined' && res.message != '') {
+                            alert(res.message);
+                        }
+
+                        if (typeof(res.data) != 'undefined' && res.data) {
+                            let page = form.find('input[name="page"]').val();
+                            let index = form.find('input[name="index"]').val();
+
+                            $('#commentTable tbody tr').each(function (i, e) {
+                                let tr = $(e);
+                                let trPage = tr.data('page');
+                                let trIndex = tr.data('index');
+
+                                if (page == trPage && index == trIndex) {
+                                    tr.find('.comment-author').html(res.data.author);
+                                    tr.find('.comment-text').html(res.data.text);
+                                    return false;
+                                }
+                            });
+                        }
+                    }
+                });
+            });
+
+            $(document).on('closed', '[data-remodal-id="commentModal"]', function (e) {
+                resetModal();
+            });
         });
+
+        function resetModal() {
+            let modal = $('[data-remodal-id="commentModal"]');
+            let saveButton = modal.find('.comment-save-button');
+            let closeButton = modal.find('.comment-close-button');
+
+            saveButton.attr('disabled', null);
+
+            modal.find('.comment-save-button .fa').each(function(i, e) {
+                let icon = $(e);
+
+                if (icon.hasClass('fa-spin')) {
+                    icon.hide();
+                } else {
+                    icon.attr('style', 'display: inline-block');
+                }
+            });
+
+            closeButton.show();
+        }
     </script>
 
     <h1>Comments in the last {{ days }} days</h1>
 
     <div class="admin-block">
-        <table>
-            <tbody class="js__comments-container">
+        <table id="commentTable">
+            <thead>
                 <tr class="h">
                     <th class="author">Author</th>
                     <th class="comment">Comment</th>
                     <th class="details">Details</th>
+                    <th>Status</th>
+                    <th>Actions</th>
                 </tr>
+            </thead>
+            <tbody class="js__comments-container">
                 {% for comment in grav.twig.comments.comments %}
-                    <tr>
-                        <td class="author">
+                    <tr data-page="{{ comment.page }}" data-index="{{ comment.index }}">
+                        <td class="comment-author">
                             {{comment.author}}
                             {% if comment.email %}
                                 <br>{{ comment.email }}
                             {% endif %}
                         </td>
-                        <td class="comment">{{comment.text|striptags('<p><b><u><i><a><br>')|raw}}</td>
-                        <td class="details"><strong>Page</strong>: {{comment.pageTitle}}<br>
-                        <strong>Date</strong>: {{comment.date}}</td>
+                        <td class="comment-text">{{comment.text|striptags('<p><b><u><i><a><br>')|raw}}</td>
+                        <td class="details">
+                            <strong>Page</strong>: {{comment.pageTitle}}<br>
+                            <strong>Date</strong>: {{comment.date}}
+                        </td>
+                        <td></td>
+                        <td>
+                            <button type="button" class="button comment-view-button" data-page="{{ comment.page }}" data-index="{{ comment.index }}">
+                                <i class="fa fa-pencil"></i> {{ 'PLUGIN_ADVANCED_COMMENTS.EDIT'|t }}
+                            </button>
+                        </td>
                     </tr>
                 {% endfor %}
             </tbody>
@@ -113,6 +256,52 @@
         {% endif %}
 
         <p class="center">Showing <span class="totalRetrieved">{{grav.twig.comments.totalRetrieved}}</span> comments of <span class="totalAvailable">{{grav.twig.comments.totalAvailable}}</span></p>
+    </div>
+
+    <div class="remodal" data-remodal-id="commentModal" data-remodal-options="hashTracking: false, stack: false, closeOnOutsideClick: false">
+        <form id="commentForm">
+            <div class="grav-loading"><div class="grav-loader">Loading...</div></div>
+            <div class="error-message"></div>
+            <div class="comment-form">
+                <h1></h1>
+
+                <div class="form-field grid">
+                    <div class="form-label block size-1-4">
+                        <label>{{ "PLUGIN_ADVANCED_COMMENTS.NAME_LABEL"|t }}</label>
+                    </div>
+                    <div class="form-data block size-3-4">
+                        <input type="text" name="author">
+                    </div>
+                </div>
+
+                <div class="form-field grid">
+                    <div class="form-label block size-1-4">
+                        <label>{{ "PLUGIN_ADVANCED_COMMENTS.EMAIL_LABEL"|t }}</label>
+                    </div>
+                    <div class="form-data block size-3-4">
+                        <input type="text" name="email">
+                    </div>
+                </div>
+
+                <div class="form-field grid">
+                    <div class="form-label block size-1-4">
+                        <label>{{ "PLUGIN_ADVANCED_COMMENTS.MESSAGE_LABEL"|t }}</label>
+                    </div>
+                    <div class="form-data block size-3-4">
+                        <textarea rows="5" name="text"></textarea>
+                    </div>
+                </div>
+
+                <input type="hidden" name="page">
+                <input type="hidden" name="index">
+            </div>
+            <div class="button-bar">
+                <a class="button secondary comment-close-button remodal-cancel" data-remodal-action="cancel" href="#"><i class="fa fa-fw fa-close"></i> {{ "PLUGIN_ADMIN.CLOSE"|t }}</a>
+                <a class="button comment-save-button" href="#"><i class="fa fa-fw fa-check"></i><i class="fa fa-circle-o-notch fa-spin fa-fw"></i> {{ "PLUGIN_ADMIN.SAVE"|t }}</a>
+            </div>
+
+            {{ nonce_field('admin-form', 'admin-nonce')|raw }}
+        </form>
     </div>
 
     {% if grav.twig.pages %}

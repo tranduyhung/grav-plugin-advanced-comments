@@ -26,6 +26,9 @@ en:
     ADMIN_PAGINATION_LIMIT_HELP: Maximum number of comments returned in the admin area's comment list.
     ADMIN_COMMENT_DAY_LIMIT: Admin comment list's day limit
     ADMIN_COMMENT_DAY_LIMIT_HELP: Number of days to get the comments the admin area's comment list.
+    COMMENT_NOT_FOUND: Comment not found
+    EDIT: Edit
+    COMMENT_WAS_SAVED: Comment was saved
 
 de:
   PLUGIN_ADVANCED_COMMENTS:
