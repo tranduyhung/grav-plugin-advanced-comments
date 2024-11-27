@@ -29,6 +29,9 @@ en:
     COMMENT_NOT_FOUND: Comment not found
     EDIT: Edit
     COMMENT_WAS_SAVED: Comment was saved
+    STATUS_APPROVED: Approved
+    STATUS_REJECTED: Rejected
+    STATUS_PENDING: Pending
 
 de:
   PLUGIN_ADVANCED_COMMENTS:
