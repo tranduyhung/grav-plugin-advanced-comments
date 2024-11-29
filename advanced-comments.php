@@ -159,73 +159,10 @@ class AdvancedCommentsPlugin extends Plugin
             return;
         }
 
-        $language = $grav['language'];
+        $task = $uri->query('task');
 
-        if (strtolower($_SERVER['REQUEST_METHOD']) === 'post') {
-            if (isset($_POST['admin-nonce'])) {
-                $nonce = $_POST['admin-nonce'];
-            } else {
-                $nonce = $uri->param('admin-nonce');
-            }
-
-            if (!$nonce || !Utils::verifyNonce($nonce, 'admin-form')) {
-                echo json_encode([
-                    'status'    => 'error',
-                    'message'   => $language->translate('PLUGIN_ADMIN.INVALID_SECURITY_TOKEN'),
-                ]);
-
-                exit;
-            }
-
-            $page = $_POST['page'] ?? null;
-            $index = $_POST['index'] ?? null;
-
-            if ($page === null || $index === null) {
-                echo json_encode([
-                    'status'    => 'error',
-                    'message'   => $language->translate('PLUGIN_ADVANCED_COMMENTS.COMMENT_NOT_FOUND'),
-                ]);
-
-                exit;
-            }
-
-            $filePath = DATA_DIR . 'comments' . $page;
-
-            if (!$filePath) {
-                echo json_encode([
-                    'status'    => 'error',
-                    'message'   => $language->translate('PLUGIN_ADVANCED_COMMENTS.COMMENT_NOT_FOUND'),
-                ]);
-
-                exit;
-            }
-
-            $file = File::instance($filePath);
-            $data = Yaml::parse($file->content());
-
-            if (!isset($data['comments'][$index])) {
-                echo json_encode([
-                    'status'    => 'error',
-                    'message'   => $language->translate('PLUGIN_ADVANCED_COMMENTS.COMMENT_NOT_FOUND'),
-                ]);
-
-                exit;
-            }
-
-            $comment = $data['comments'][$index];
-            $comment['text'] = $_POST['text'] ?? '';
-            $comment['author'] = $_POST['author'] ?? '';
-            $comment['email'] = $_POST['email'] ?? '';
-
-            $data['comments'][$index] = $comment;
-
-            $file->save(Yaml::dump($data));
-
-            echo json_encode([
-                'status'    => 'success',
-                'message'   => $language->translate('PLUGIN_ADVANCED_COMMENTS.COMMENT_WAS_SAVED'),
-                'data'      => $comment,
-            ]);
+        if (strtolower($_SERVER['REQUEST_METHOD']) == 'post') {
+            $this->handlePostRequests();
 
             exit;
         }
@@ -233,7 +170,7 @@ class AdvancedCommentsPlugin extends Plugin
         $page = $uri->query('page');
         $index = $uri->query('index');
 
-        if ($page != '' && $index != '') {
+        if ($task == 'edit') {
             echo json_encode([
                 'comment' => $this->getComment($page, $index)
             ]);
@@ -343,6 +280,10 @@ class AdvancedCommentsPlugin extends Plugin
 
     private function getComment($page, $index)
     {
+        if ($page == '' || $index == '') {
+            return null;
+        }
+
         $path = DATA_DIR . 'comments' . $page;
 
         if (!file_exists($path)) {
@@ -354,6 +295,111 @@ class AdvancedCommentsPlugin extends Plugin
         $comment = $data['comments'][$index] ?? null;
 
         return $comment;
+    }
+
+    private function handlePostRequests()
+    {
+        $grav = $this->grav;
+        $uri = $grav['uri'];
+        $language = $grav['language'];
+
+        if (isset($_POST['admin-nonce'])) {
+            $nonce = $_POST['admin-nonce'];
+        } else {
+            $nonce = $uri->param('admin-nonce');
+        }
+
+        if (!$nonce || !Utils::verifyNonce($nonce, 'admin-form')) {
+            echo json_encode([
+                'status'    => 'error',
+                'message'   => $language->translate('PLUGIN_ADMIN.INVALID_SECURITY_TOKEN'),
+            ]);
+
+            exit;
+        }
+
+        $page = $_POST['page'] ?? null;
+        $index = $_POST['index'] ?? null;
+
+        if ($page === null || $index === null) {
+            echo json_encode([
+                'status'    => 'error',
+                'message'   => $language->translate('PLUGIN_ADVANCED_COMMENTS.COMMENT_NOT_FOUND'),
+            ]);
+
+            exit;
+        }
+
+        $filePath = DATA_DIR . 'comments' . $page;
+
+        if (!$filePath) {
+            echo json_encode([
+                'status'    => 'error',
+                'message'   => $language->translate('PLUGIN_ADVANCED_COMMENTS.COMMENT_NOT_FOUND'),
+            ]);
+
+            exit;
+        }
+
+        $file = File::instance($filePath);
+        $data = Yaml::parse($file->content());
+
+        if (!isset($data['comments'][$index])) {
+            echo json_encode([
+                'status'    => 'error',
+                'message'   => $language->translate('PLUGIN_ADVANCED_COMMENTS.COMMENT_NOT_FOUND'),
+            ]);
+
+            exit;
+        }
+
+        $task = $uri->query('task');
+
+        if ($task == 'edit') {
+            $comment = $data['comments'][$index];
+            $comment['text'] = $_POST['text'] ?? '';
+            $comment['author'] = $_POST['author'] ?? '';
+            $comment['email'] = $_POST['email'] ?? '';
+
+            $data['comments'][$index] = $comment;
+
+            $file->save(Yaml::dump($data));
+
+            echo json_encode([
+                'status'    => 'success',
+                'message'   => $language->translate('PLUGIN_ADVANCED_COMMENTS.COMMENT_WAS_SAVED'),
+                'data'      => $comment,
+            ]);
+        } else if ($task == 'updateStatus') {
+            $status = $_POST['status'] ?? '';
+            $comment = $data['comments'][$index];
+
+            $comment['approved'] = $status;
+
+            $data['comments'][$index] = $comment;
+
+            $file->save(Yaml::dump($data));
+
+            echo json_encode([
+                'status'    => 'success',
+                'message'   => $language->translate('PLUGIN_ADVANCED_COMMENTS.COMMENT_WAS_SAVED'),
+                'data'      => $comment,
+            ]);
+        } else if ($task == 'reject') {
+            $comment = $data['comments'][$index];
+
+            $comment['approved'] = 0;
+
+            $data['comments'][$index] = $comment;
+
+            $file->save(Yaml::dump($data));
+
+            echo json_encode([
+                'status'    => 'success',
+                'message'   => $language->translate('PLUGIN_ADVANCED_COMMENTS.COMMENT_WAS_SAVED'),
+                'data'      => $comment,
+            ]);
+        }
     }
 
     private function getFilesOrderedByModifiedDate($path = '')

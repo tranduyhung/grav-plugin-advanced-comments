@@ -29,7 +29,7 @@
 
         .button:active { margin: 0 auto;}
 
-        #commentForm .fa-spin {
+        .comment-spinner {
             display: none;
         }
     </style>
@@ -49,10 +49,10 @@
 
                         response.comments.forEach(function(comment) {
                             let html = '<tr data-page="' + comment.page + '" data-index="' + comment.index + '">' +
-                                '<td class="e author">' + comment.author + '</td>' +
-                                '<td class="v comment">' + comment.text + '</td>' +
-                                '<td class="v details"><strong>Page</strong>: ' + comment.pageTitle + '<br>' +
-                                '<strong>Date</strong>: ' + comment.date + '</td><td>';
+                                '<td class="comment-author">' + comment.author + '</td>' +
+                                '<td class="comment-text">' + comment.text + '</td>' +
+                                '<td class="comment-details"><strong>Page</strong>: ' + comment.pageTitle + '<br>' +
+                                '<strong>Date</strong>: ' + comment.date + '</td><td class="comment-approved">';
 
                             if (comment.approved == '1') {
                                 html += "{{ 'PLUGIN_ADVANCED_COMMENTS.STATUS_APPROVED'|t }}";
@@ -62,9 +62,18 @@
                                 html += "{{ 'PLUGIN_ADVANCED_COMMENTS.STATUS_PENDING'|t }}";
                             }
 
-                            html += '</td><td><button type="button" class="button comment-view-button" data-page="' + comment.page + '" data-index="' + comment.index + '">' +
-                                '<i class="fa fa-eye"></i> {{ 'PLUGIN_ADVANCED_COMMENTS.EDIT'|t }}' + '</button></td>' +
-                                '</tr>';
+                            html += '</td><td>';
+
+                            html += '<button type="button" class="button comment-approve-button" data-page="' + comment.page + '" data-index="' + comment.index + '">' +
+                                '<i class="fa fa-thumbs-up"></i>' + '</button>';
+                            html += '<button type="button" class="button comment-reject-button" data-page="' + comment.page + '" data-index="' + comment.index + '">' +
+                                '<i class="fa fa-thumbs-down"></i>' + '</button>';
+                            html += '<button type="button" class="button comment-edit-button" data-page="' + comment.page + '" data-index="' + comment.index + '">' +
+                                '<i class="fa fa-pencil"></i>' + '</button>';
+                            html += '<button type="button" class="button danger comment-delete-button" data-page="' + comment.page + '" data-index="' + comment.index + '">' +
+                                '<i class="fa fa-trash"></i>' + '</button>';
+
+                            html += '</td></tr>';
 
                             $('.js__comments-container').append(html);
                         })
@@ -84,9 +93,31 @@
                 });
             });
 
-            $(document).on('click tap', '.comment-view-button', function(e) {
-                let page = $(e.target).data('page');
-                let index = $(e.target).data('index');
+            $(document).on('click tap', '.comment-approve-button', function(event) {
+                let page = $(event.target).data('page');
+                let index = $(event.target).data('index');
+
+                if (typeof(page) == 'undefined' || typeof(index) == 'undefined') {
+                    return;
+                }
+
+                updateCommentStatus($(event.target), page, index, 1);
+            });
+
+            $(document).on('click tap', '.comment-reject-button', function(event) {
+                let page = $(event.target).data('page');
+                let index = $(event.target).data('index');
+
+                if (typeof(page) == 'undefined' || typeof(index) == 'undefined') {
+                    return;
+                }
+
+                updateCommentStatus($(event.target), page, index, 0);
+            });
+
+            $(document).on('click tap', '.comment-edit-button', function(event) {
+                let page = $(event.target).data('page');
+                let index = $(event.target).data('index');
 
                 if (typeof(page) == 'undefined' || typeof(index) == 'undefined') {
                     return;
@@ -98,7 +129,7 @@
                 modal.find('.comment-form, .button-bar').hide();
                 $.remodal.lookup[modal.data('remodal')].open();
 
-                let url = currentUri + '?page=' + encodeURIComponent(page) + '&index=' + index;
+                let url = currentUri + '?page=' + encodeURIComponent(page) + '&index=' + index + '&task=edit';
 
                 $.ajax({
                     url: url,
@@ -148,7 +179,7 @@
                 saveButton.attr('disabled', 'disabled');
 
                 $.ajax({
-                    url: currentUri,
+                    url: currentUri + '?task=edit',
                     method: 'post',
                     dataType: 'json',
                     data: form.serialize(),
@@ -207,6 +238,61 @@
 
             closeButton.show();
         }
+
+        function updateCommentStatus(button, page, index, status) {
+            let icons = button.find('.fa');
+
+            let currentUri = '{{ grav.config.plugins.admin.route }}/advanced-comments';
+
+            $.ajax({
+                url: currentUri + '?task=updateStatus',
+                method: 'post',
+                dataType: 'json',
+                data: {
+                    'page': page,
+                    'index': index,
+                    'admin-nonce': $('input[name="admin-nonce"]').val(),
+                    'status': status
+                },
+                success: function(res) {
+                    if (typeof(res.message) != 'undefined' && res.message != '') {
+                        alert(res.message);
+                    }
+
+                    if (typeof(res.data) != 'undefined' && res.data) {
+                        $('#commentTable tbody tr').each(function (i, e) {
+                            let tr = $(e);
+                            let trPage = tr.data('page');
+                            let trIndex = tr.data('index');
+
+                            if (page == trPage && index == trIndex) {
+                                let status = '{{ 'PLUGIN_ADVANCED_COMMENTS.STATUS_PENDING'|t }}';
+
+                                if (res.data.approved == '1') {
+                                    status = '{{ 'PLUGIN_ADVANCED_COMMENTS.STATUS_APPROVED'|t }}';
+                                } else if (res.data.approved == '0') {
+                                    status = '{{ 'PLUGIN_ADVANCED_COMMENTS.STATUS_REJECTED'|t }}';
+                                }
+
+                                tr.find('.comment-approved').html(status);
+
+                                return false;
+                            }
+                        });
+                    }
+
+                    icons.each(function(i, e) {
+                        let icon = $(e);
+
+                        if (icon.hasClass('fa-spin')) {
+                            icon.hide();
+                        } else {
+                            icon.attr('style', 'display: inline-block');
+                        }
+                    });
+                }
+            });
+        }
     </script>
 
     <h1>Comments in the last {{ days }} days</h1>
@@ -214,7 +300,7 @@
     <div class="admin-block">
         <table id="commentTable">
             <thead>
-                <tr class="h">
+                <tr>
                     <th class="author">Author</th>
                     <th class="comment">Comment</th>
                     <th class="details">Details</th>
@@ -232,11 +318,11 @@
                             {% endif %}
                         </td>
                         <td class="comment-text">{{comment.text|striptags('<p><b><u><i><a><br>')|raw}}</td>
-                        <td class="details">
+                        <td class="comment-details">
                             <strong>Page</strong>: {{comment.pageTitle}}<br>
                             <strong>Date</strong>: {{comment.date}}
                         </td>
-                        <td>
+                        <td class="comment-approved">
                             {% if comment.approved == '1' %}
                                 {{ 'PLUGIN_ADVANCED_COMMENTS.STATUS_APPROVED'|t }}
                             {% elseif comment.approved == '0' %}
@@ -246,8 +332,17 @@
                             {% endif %}
                         </td>
                         <td>
-                            <button type="button" class="button comment-view-button" data-page="{{ comment.page }}" data-index="{{ comment.index }}">
-                                <i class="fa fa-pencil"></i> {{ 'PLUGIN_ADVANCED_COMMENTS.EDIT'|t }}
+                            <button type="button" class="button comment-approve-button" data-page="{{ comment.page }}" data-index="{{ comment.index }}">
+                                <i class="fa fa-thumbs-up"></i><i class="fa fa-circle-o-notch fa-spin fa-fw comment-spinner"></i>
+                            </button>
+                            <button type="button" class="button comment-reject-button" data-page="{{ comment.page }}" data-index="{{ comment.index }}">
+                                <i class="fa fa-thumbs-down"></i><i class="fa fa-circle-o-notch fa-spin fa-fw comment-spinner"></i>
+                            </button>
+                            <button type="button" class="button comment-edit-button" data-page="{{ comment.page }}" data-index="{{ comment.index }}">
+                                <i class="fa fa-pencil"></i>
+                            </button>
+                            <button type="button" class="button danger comment-delete-button" data-page="{{ comment.page }}" data-index="{{ comment.index }}">
+                                <i class="fa fa-trash"></i><i class="fa fa-circle-o-notch fa-spin fa-fw comment-spinner"></i>
                             </button>
                         </td>
                     </tr>
@@ -303,7 +398,7 @@
             </div>
             <div class="button-bar">
                 <a class="button secondary comment-close-button remodal-cancel" data-remodal-action="cancel" href="#"><i class="fa fa-fw fa-close"></i> {{ "PLUGIN_ADMIN.CLOSE"|t }}</a>
-                <a class="button comment-save-button" href="#"><i class="fa fa-fw fa-check"></i><i class="fa fa-circle-o-notch fa-spin fa-fw"></i> {{ "PLUGIN_ADMIN.SAVE"|t }}</a>
+                <a class="button comment-save-button" href="#"><i class="fa fa-fw fa-check"></i><i class="fa fa-circle-o-notch fa-spin fa-fw comment-spinner"></i> {{ "PLUGIN_ADMIN.SAVE"|t }}</a>
             </div>
 
             {{ nonce_field('admin-form', 'admin-nonce')|raw }}
