@@ -399,6 +399,14 @@ class AdvancedCommentsPlugin extends Plugin
                 'message'   => $language->translate('PLUGIN_ADVANCED_COMMENTS.COMMENT_WAS_SAVED'),
                 'data'      => $comment,
             ]);
+        } else if ($task == 'delete') {
+            unset($data['comments'][$index]);
+
+            $file->save(Yaml::dump($data));
+
+            echo json_encode([
+                'status' => 'success',
+            ]);
         }
     }
 

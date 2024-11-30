@@ -68,7 +68,7 @@
                                 '<i class="fa fa-thumbs-up"></i>' + '</button>';
                             html += '<button type="button" class="button comment-reject-button" data-page="' + comment.page + '" data-index="' + comment.index + '">' +
                                 '<i class="fa fa-thumbs-down"></i>' + '</button>';
-                            html += '<button type="button" class="button comment-edit-button" data-page="' + comment.page + '" data-index="' + comment.index + '">' +
+                            html += '<button type="button" class="button comment-edit-modal-button" data-page="' + comment.page + '" data-index="' + comment.index + '">' +
                                 '<i class="fa fa-pencil"></i>' + '</button>';
                             html += '<button type="button" class="button danger comment-delete-button" data-page="' + comment.page + '" data-index="' + comment.index + '">' +
                                 '<i class="fa fa-trash"></i>' + '</button>';
@@ -115,7 +115,7 @@
                 updateCommentStatus($(event.target), page, index, 0);
             });
 
-            $(document).on('click tap', '.comment-edit-button', function(event) {
+            $(document).on('click tap', '.comment-edit-modal-button', function(event) {
                 let page = $(event.target).data('page');
                 let index = $(event.target).data('index');
 
@@ -123,7 +123,7 @@
                     return;
                 }
 
-                let modal = $('[data-remodal-id="commentModal"]');
+                let modal = $('[data-remodal-id="commentEditModal"]');
 
                 modal.find('.grav-loading').show();
                 modal.find('.comment-form, .button-bar').hide();
@@ -150,8 +150,8 @@
                         modal.find('input[name="author"]').val(comment.author);
                         modal.find('input[name="email"]').val(comment.email);
                         modal.find('textarea[name="text"]').val(comment.text);
-                        modal.find('input[name="page"]').val(page);
-                        modal.find('input[name="index"]').val(index);
+                        modal.find('#commentEditFormPage').val(page);
+                        modal.find('#commentEditFormIndex').val(index);
 
                         modal.find('.comment-form, .comment-save-button').show();
                     }
@@ -159,14 +159,14 @@
             });
 
             $(document).on('click tap', '.comment-save-button', function(e) {
-                let form = $('#commentForm');
-                let modal = $('[data-remodal-id="commentModal"]');
+                let form = $('#commentEditForm');
+                let modal = $('[data-remodal-id="commentEditModal"]');
                 let saveButton = $(this);
                 let closeButton = modal.find('.comment-close-button');
 
                 closeButton.hide();
 
-                modal.find('.comment-save-button .fa').each(function(i, e) {
+                saveButton.find('.fa').each(function(i, e) {
                     let icon = $(e);
 
                     if (icon.hasClass('fa-spin')) {
@@ -214,13 +214,80 @@
                 });
             });
 
-            $(document).on('closed', '[data-remodal-id="commentModal"]', function (e) {
+            $(document).on('click tap', '.comment-delete-modal-button', function(event) {
+                let page = $(event.target).data('page');
+                let index = $(event.target).data('index');
+
+                if (typeof(page) == 'undefined' || typeof(index) == 'undefined') {
+                    return;
+                }
+
+                let modal = $('[data-remodal-id="commentDeletionModal"]');
+                modal.find('#commentDeletionFormPage').val(page);
+                modal.find('#commentDeletionFormIndex').val(index);
+
+                $.remodal.lookup[modal.data('remodal')].open();
+            });
+
+            $(document).on('closed', '[data-remodal-id="commentEditModal"]', function (e) {
                 resetModal();
+            });
+
+            $(document).on('click tap', '.comment-delete-button', function(event) {
+                let form = $('#commentDeletionForm');
+                let modal = $('[data-remodal-id="commentDeletionModal"]');
+                let confirmButton = $(this);
+                let closeButton = modal.find('.comment-close-button');
+
+                closeButton.hide();
+
+                let icons = confirmButton.find('.fa');
+
+                icons.each(function(i, e) {
+                    let icon = $(e);
+
+                    if (icon.hasClass('fa-spin')) {
+                        icon.attr('style', 'display: inline-block');
+                    } else {
+                        icon.hide();
+                    }
+                });
+
+                confirmButton.attr('disabled', 'disabled');
+
+                $.ajax({
+                    url: currentUri + '?task=delete',
+                    method: 'post',
+                    dataType: 'json',
+                    data: form.serialize(),
+                    success: function(res) {
+                        if (typeof(res.status) != 'undefined' && res.status == 'success') {
+                            window.location.reload();
+                        } else {
+                            icons.each(function(i, e) {
+                                let icon = $(e);
+
+                                if (icon.hasClass('fa-spin')) {
+                                    icon.hide();
+                                } else {
+                                    icon.attr('style', 'display: inline-block');
+                                }
+                            });
+
+                            confirmButton.attr('disabled', null);
+                            closeButton.show();
+                        }
+
+                        if (typeof(res.message) != 'undefined' && res.message != '') {
+                            alert(res.message);
+                        }
+                    }
+                });
             });
         });
 
         function resetModal() {
-            let modal = $('[data-remodal-id="commentModal"]');
+            let modal = $('[data-remodal-id="commentEditModal"]');
             let saveButton = modal.find('.comment-save-button');
             let closeButton = modal.find('.comment-close-button');
 
@@ -341,7 +408,7 @@
                             <button type="button" class="button comment-edit-button" data-page="{{ comment.page }}" data-index="{{ comment.index }}">
                                 <i class="fa fa-pencil"></i>
                             </button>
-                            <button type="button" class="button danger comment-delete-button" data-page="{{ comment.page }}" data-index="{{ comment.index }}">
+                            <button type="button" class="button danger comment-delete-modal-button" data-page="{{ comment.page }}" data-index="{{ comment.index }}">
                                 <i class="fa fa-trash"></i><i class="fa fa-circle-o-notch fa-spin fa-fw comment-spinner"></i>
                             </button>
                         </td>
@@ -359,8 +426,8 @@
         <p class="center">Showing <span class="totalRetrieved">{{grav.twig.comments.totalRetrieved}}</span> comments of <span class="totalAvailable">{{grav.twig.comments.totalAvailable}}</span></p>
     </div>
 
-    <div class="remodal" data-remodal-id="commentModal" data-remodal-options="hashTracking: false, stack: false, closeOnOutsideClick: false">
-        <form id="commentForm">
+    <div class="remodal" data-remodal-id="commentEditModal" data-remodal-options="hashTracking: false, stack: false, closeOnOutsideClick: false">
+        <form id="commentEditForm">
             <div class="grav-loading"><div class="grav-loader">Loading...</div></div>
             <div class="error-message"></div>
             <div class="comment-form">
@@ -393,13 +460,28 @@
                     </div>
                 </div>
 
-                <input type="hidden" name="page">
-                <input type="hidden" name="index">
+                <input type="hidden" name="page" id="commentEditFormPage">
+                <input type="hidden" name="index" id="commentEditFormIndex">
             </div>
             <div class="button-bar">
                 <a class="button secondary comment-close-button remodal-cancel" data-remodal-action="cancel" href="#"><i class="fa fa-fw fa-close"></i> {{ "PLUGIN_ADMIN.CLOSE"|t }}</a>
                 <a class="button comment-save-button" href="#"><i class="fa fa-fw fa-check"></i><i class="fa fa-circle-o-notch fa-spin fa-fw comment-spinner"></i> {{ "PLUGIN_ADMIN.SAVE"|t }}</a>
             </div>
+
+            {{ nonce_field('admin-form', 'admin-nonce')|raw }}
+        </form>
+    </div>
+
+    <div class="remodal" data-remodal-id="commentDeletionModal" data-remodal-options="hashTracking: false, stack: false, closeOnOutsideClick: false">
+        <form id="commentDeletionForm">
+            <p>{{ "PLUGIN_ADVANCED_COMMENTS.DELETION_CONFIRMATION"|t }}</p>
+            <div class="button-bar">
+                <a class="button secondary comment-close-button remodal-cancel" data-remodal-action="cancel" href="#"><i class="fa fa-fw fa-close"></i> {{ "PLUGIN_ADMIN.CANCEL"|t }}</a>
+                <a class="button danger comment-delete-button" href="#"><i class="fa fa-fw fa-check"></i><i class="fa fa-circle-o-notch fa-spin fa-fw comment-spinner"></i> {{ "PLUGIN_ADMIN.DELETE"|t }}</a>
+            </div>
+
+            <input type="hidden" name="page" id="commentDeletionFormPage">
+            <input type="hidden" name="index" id="commentDeletionFormIndex">
 
             {{ nonce_field('admin-form', 'admin-nonce')|raw }}
         </form>
