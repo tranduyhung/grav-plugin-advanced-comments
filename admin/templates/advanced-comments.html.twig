@@ -32,6 +32,10 @@
         .comment-spinner {
             display: none;
         }
+
+        .fa {
+            pointer-events:none;
+        }
     </style>
 
     <script>
@@ -70,6 +74,8 @@
                                 '<i class="fa fa-thumbs-down"></i>' + '</button>';
                             html += '<button type="button" class="button comment-edit-modal-button" data-page="' + comment.page + '" data-index="' + comment.index + '">' +
                                 '<i class="fa fa-pencil"></i>' + '</button>';
+                            html += '<button type="button" class="button reply-edit-modal-button" data-page="' + comment.page + '" data-index="' + comment.index + '">' +
+                                '<i class="fa fa-reply"></i>' + '</button>';
                             html += '<button type="button" class="button danger comment-delete-button" data-page="' + comment.page + '" data-index="' + comment.index + '">' +
                                 '<i class="fa fa-trash"></i>' + '</button>';
 
@@ -129,7 +135,7 @@
                 modal.find('.comment-form, .button-bar').hide();
                 $.remodal.lookup[modal.data('remodal')].open();
 
-                let url = currentUri + '?page=' + encodeURIComponent(page) + '&index=' + index + '&task=edit';
+                let url = currentUri + '?page=' + encodeURIComponent(page) + '&index=' + index + '&task=editComment';
 
                 $.ajax({
                     url: url,
@@ -158,6 +164,115 @@
                 });
             });
 
+            $(document).on('click tap', '.reply-edit-modal-button', function(event) {
+                let page = $(event.target).data('page');
+                let index = $(event.target).data('index');
+
+                if (typeof(page) == 'undefined' || typeof(index) == 'undefined') {
+                    return;
+                }
+
+                let modal = $('[data-remodal-id="replyEditModal"]');
+
+                modal.find('.grav-loading').show();
+                modal.find('.reply-form, .button-bar').hide();
+                $.remodal.lookup[modal.data('remodal')].open();
+
+                let url = currentUri + '?page=' + encodeURIComponent(page) + '&index=' + index + '&task=editComment';
+
+                $.ajax({
+                    url: url,
+                    dataType: 'json',
+                    success: function(res) {
+                        modal.find('.grav-loading').hide();
+                        modal.find('.button-bar').show();
+
+                        if (!res.comment) {
+                            modal.find('.comment-form, .comment-save-button').hide();
+                            modal.find('.error-message').html('<p>{{ 'PLUGIN_ADVANCED_COMMENTS.COMMENT_NOT_FOUND'|t }}</p>');
+
+                            return;
+                        }
+
+                        let comment = res.comment;
+
+                        let reply = '';
+
+                        if (typeof(comment.replies) != 'undefined' && typeof(comment.replies[0]) != 'undefined') {
+                            reply = comment.replies[0].text ?? '';
+                        }
+
+                        modal.find('textarea[name="reply"]').val(reply);
+                        modal.find('#replyEditFormPage').val(page);
+                        modal.find('#replyEditFormIndex').val(index);
+
+                        modal.find('.reply-form, .reply-save-button').show();
+                    }
+                });
+            });
+
+            $(document).on('click tap', '.reply-save-button', function(e) {
+                let form = $('#replyEditForm');
+                let modal = $('[data-remodal-id="replyEditModal"]');
+                let saveButton = $(this);
+                let closeButton = modal.find('.reply-close-button');
+
+                closeButton.hide();
+
+                saveButton.find('.fa').each(function(i, e) {
+                    let icon = $(e);
+
+                    if (icon.hasClass('fa-spin')) {
+                        icon.attr('style', 'display: inline-block');
+                    } else {
+                        icon.hide();
+                    }
+                });
+
+                saveButton.attr('disabled', 'disabled');
+
+                $.ajax({
+                    url: currentUri + '?task=saveReply',
+                    method: 'post',
+                    dataType: 'json',
+                    data: form.serialize(),
+                    success: function(res) {
+                        if (typeof(res.status) != 'undefined' && res.status == 'success') {
+                            $.remodal.lookup[modal.data('remodal')].close();
+                        } else {
+                            resetReplyModal();
+                        }
+
+                        if (typeof(res.message) != 'undefined' && res.message != '') {
+                            alert(res.message);
+                        }
+                    }
+                });
+            });
+
+            $(document).on('click tap', '.comment-delete-modal-button', function(event) {
+                let page = $(event.target).data('page');
+                let index = $(event.target).data('index');
+
+                if (typeof(page) == 'undefined' || typeof(index) == 'undefined') {
+                    return;
+                }
+
+                let modal = $('[data-remodal-id="commentDeletionModal"]');
+                modal.find('#commentDeletionFormPage').val(page);
+                modal.find('#commentDeletionFormIndex').val(index);
+
+                $.remodal.lookup[modal.data('remodal')].open();
+            });
+
+            $(document).on('closed', '[data-remodal-id="commentEditModal"]', function (e) {
+                resetCommentModal();
+            });
+
+            $(document).on('closed', '[data-remodal-id="replyEditModal"]', function (e) {
+                resetReplyModal();
+            });
+
             $(document).on('click tap', '.comment-save-button', function(e) {
                 let form = $('#commentEditForm');
                 let modal = $('[data-remodal-id="commentEditModal"]');
@@ -179,7 +294,7 @@
                 saveButton.attr('disabled', 'disabled');
 
                 $.ajax({
-                    url: currentUri + '?task=edit',
+                    url: currentUri + '?task=editComment',
                     method: 'post',
                     dataType: 'json',
                     data: form.serialize(),
@@ -187,7 +302,7 @@
                         if (typeof(res.status) != 'undefined' && res.status == 'success') {
                             $.remodal.lookup[modal.data('remodal')].close();
                         } else {
-                            resetModal();
+                            resetCommentModal();
                         }
 
                         if (typeof(res.message) != 'undefined' && res.message != '') {
@@ -214,25 +329,6 @@
                 });
             });
 
-            $(document).on('click tap', '.comment-delete-modal-button', function(event) {
-                let page = $(event.target).data('page');
-                let index = $(event.target).data('index');
-
-                if (typeof(page) == 'undefined' || typeof(index) == 'undefined') {
-                    return;
-                }
-
-                let modal = $('[data-remodal-id="commentDeletionModal"]');
-                modal.find('#commentDeletionFormPage').val(page);
-                modal.find('#commentDeletionFormIndex').val(index);
-
-                $.remodal.lookup[modal.data('remodal')].open();
-            });
-
-            $(document).on('closed', '[data-remodal-id="commentEditModal"]', function (e) {
-                resetModal();
-            });
-
             $(document).on('click tap', '.comment-delete-button', function(event) {
                 let form = $('#commentDeletionForm');
                 let modal = $('[data-remodal-id="commentDeletionModal"]');
@@ -256,7 +352,7 @@
                 confirmButton.attr('disabled', 'disabled');
 
                 $.ajax({
-                    url: currentUri + '?task=delete',
+                    url: currentUri + '?task=deleteComment',
                     method: 'post',
                     dataType: 'json',
                     data: form.serialize(),
@@ -286,7 +382,7 @@
             });
         });
 
-        function resetModal() {
+        function resetCommentModal() {
             let modal = $('[data-remodal-id="commentEditModal"]');
             let saveButton = modal.find('.comment-save-button');
             let closeButton = modal.find('.comment-close-button');
@@ -306,13 +402,33 @@
             closeButton.show();
         }
 
+        function resetReplyModal() {
+            let modal = $('[data-remodal-id="replyEditModal"]');
+            let saveButton = modal.find('.reply-save-button');
+            let closeButton = modal.find('.reply-close-button');
+
+            saveButton.attr('disabled', null);
+
+            modal.find('.reply-save-button .fa').each(function(i, e) {
+                let icon = $(e);
+
+                if (icon.hasClass('fa-spin')) {
+                    icon.hide();
+                } else {
+                    icon.attr('style', 'display: inline-block');
+                }
+            });
+
+            closeButton.show();
+        }
+
         function updateCommentStatus(button, page, index, status) {
             let icons = button.find('.fa');
 
             let currentUri = '{{ grav.config.plugins.admin.route }}/advanced-comments';
 
             $.ajax({
-                url: currentUri + '?task=updateStatus',
+                url: currentUri + '?task=updateCommentStatus',
                 method: 'post',
                 dataType: 'json',
                 data: {
@@ -405,8 +521,11 @@
                             <button type="button" class="button comment-reject-button" data-page="{{ comment.page }}" data-index="{{ comment.index }}">
                                 <i class="fa fa-thumbs-down"></i><i class="fa fa-circle-o-notch fa-spin fa-fw comment-spinner"></i>
                             </button>
-                            <button type="button" class="button comment-edit-button" data-page="{{ comment.page }}" data-index="{{ comment.index }}">
+                            <button type="button" class="button comment-edit-modal-button" data-page="{{ comment.page }}" data-index="{{ comment.index }}">
                                 <i class="fa fa-pencil"></i>
+                            </button>
+                            <button type="button" class="button reply-edit-modal-button" data-page="{{ comment.page }}" data-index="{{ comment.index }}">
+                                <i class="fa fa-reply"></i>
                             </button>
                             <button type="button" class="button danger comment-delete-modal-button" data-page="{{ comment.page }}" data-index="{{ comment.index }}">
                                 <i class="fa fa-trash"></i><i class="fa fa-circle-o-notch fa-spin fa-fw comment-spinner"></i>
@@ -466,6 +585,34 @@
             <div class="button-bar">
                 <a class="button secondary comment-close-button remodal-cancel" data-remodal-action="cancel" href="#"><i class="fa fa-fw fa-close"></i> {{ "PLUGIN_ADMIN.CLOSE"|t }}</a>
                 <a class="button comment-save-button" href="#"><i class="fa fa-fw fa-check"></i><i class="fa fa-circle-o-notch fa-spin fa-fw comment-spinner"></i> {{ "PLUGIN_ADMIN.SAVE"|t }}</a>
+            </div>
+
+            {{ nonce_field('admin-form', 'admin-nonce')|raw }}
+        </form>
+    </div>
+
+    <div class="remodal" data-remodal-id="replyEditModal" data-remodal-options="hashTracking: false, stack: false, closeOnOutsideClick: false">
+        <form id="replyEditForm">
+            <div class="grav-loading"><div class="grav-loader">Loading...</div></div>
+            <div class="error-message"></div>
+            <div class="reply-form">
+                <h1></h1>
+
+                <div class="form-field grid">
+                    <div class="form-label block size-1-4">
+                        <label>{{ "PLUGIN_ADVANCED_COMMENTS.REPLY_LABEL"|t }}</label>
+                    </div>
+                    <div class="form-data block size-3-4">
+                        <textarea rows="5" name="reply"></textarea>
+                    </div>
+                </div>
+
+                <input type="hidden" name="page" id="replyEditFormPage">
+                <input type="hidden" name="index" id="replyEditFormIndex">
+            </div>
+            <div class="button-bar">
+                <a class="button secondary reply-close-button remodal-cancel" data-remodal-action="cancel" href="#"><i class="fa fa-fw fa-close"></i> {{ "PLUGIN_ADMIN.CLOSE"|t }}</a>
+                <a class="button reply-save-button" href="#"><i class="fa fa-fw fa-check"></i><i class="fa fa-circle-o-notch fa-spin fa-fw comment-spinner"></i> {{ "PLUGIN_ADMIN.SAVE"|t }}</a>
             </div>
 
             {{ nonce_field('admin-form', 'admin-nonce')|raw }}

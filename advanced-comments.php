@@ -170,7 +170,7 @@ class AdvancedCommentsPlugin extends Plugin
         $page = $uri->query('page');
         $index = $uri->query('index');
 
-        if ($task == 'edit') {
+        if ($task == 'editComment') {
             echo json_encode([
                 'comment' => $this->getComment($page, $index)
             ]);
@@ -355,7 +355,7 @@ class AdvancedCommentsPlugin extends Plugin
 
         $task = $uri->query('task');
 
-        if ($task == 'edit') {
+        if ($task == 'editComment') {
             $comment = $data['comments'][$index];
             $comment['text'] = $_POST['text'] ?? '';
             $comment['author'] = $_POST['author'] ?? '';
@@ -370,7 +370,7 @@ class AdvancedCommentsPlugin extends Plugin
                 'message'   => $language->translate('PLUGIN_ADVANCED_COMMENTS.COMMENT_WAS_SAVED'),
                 'data'      => $comment,
             ]);
-        } else if ($task == 'updateStatus') {
+        } else if ($task == 'updateCommentStatus') {
             $status = $_POST['status'] ?? '';
             $comment = $data['comments'][$index];
 
@@ -385,10 +385,24 @@ class AdvancedCommentsPlugin extends Plugin
                 'message'   => $language->translate('PLUGIN_ADVANCED_COMMENTS.COMMENT_WAS_SAVED'),
                 'data'      => $comment,
             ]);
-        } else if ($task == 'reject') {
+        } else if ($task == 'deleteComment') {
+            unset($data['comments'][$index]);
+
+            $file->save(Yaml::dump($data));
+
+            echo json_encode([
+                'status' => 'success',
+            ]);
+        } else if ($task == 'saveReply') {
             $comment = $data['comments'][$index];
 
-            $comment['approved'] = 0;
+            // Only support 1 reply at the present time.
+            $comment['replies'] = [];
+
+            $comment['replies'][] = [
+                'text'  => $_POST['reply'] ?? '',
+                'date'  => date('D, d M Y H:i:s', time()),
+            ];
 
             $data['comments'][$index] = $comment;
 
@@ -396,16 +410,8 @@ class AdvancedCommentsPlugin extends Plugin
 
             echo json_encode([
                 'status'    => 'success',
-                'message'   => $language->translate('PLUGIN_ADVANCED_COMMENTS.COMMENT_WAS_SAVED'),
+                'message'   => $language->translate('PLUGIN_ADVANCED_COMMENTS.REPLY_WAS_SAVED'),
                 'data'      => $comment,
-            ]);
-        } else if ($task == 'delete') {
-            unset($data['comments'][$index]);
-
-            $file->save(Yaml::dump($data));
-
-            echo json_encode([
-                'status' => 'success',
             ]);
         }
     }
@@ -469,21 +475,21 @@ class AdvancedCommentsPlugin extends Plugin
         foreach ($files as $file) {
             $data = Yaml::parse(file_get_contents($file->filePath));
 
-            for ($i = 0; $i < count($data['comments']); $i++) {
-                $commentTimestamp = \DateTime::createFromFormat('D, d M Y H:i:s', $data['comments'][$i]['date'])->getTimestamp();
+            if (count($data['comments'])) {
+                foreach ($data['comments'] as $i => $comment) {
+                    $commentTimestamp = \DateTime::createFromFormat('D, d M Y H:i:s', $comment['date'])->getTimestamp();
 
-                if ($commentTimestamp < $daysAgo) {
-                    continue;
+                    if ($commentTimestamp < $daysAgo) {
+                        continue;
+                    }
+
+                    $data['comments'][$i]['pageTitle'] = $data['title'];
+                    $data['comments'][$i]['filePath'] = $file->filePath;
+                    $data['comments'][$i]['timestamp'] = $commentTimestamp;
+                    $data['comments'][$i]['page'] = str_replace(DATA_DIR . 'comments', '', $file->filePath);
+                    $data['comments'][$i]['index'] = $i;
                 }
 
-                $data['comments'][$i]['pageTitle'] = $data['title'];
-                $data['comments'][$i]['filePath'] = $file->filePath;
-                $data['comments'][$i]['timestamp'] = $commentTimestamp;
-                $data['comments'][$i]['page'] = str_replace(DATA_DIR . 'comments', '', $file->filePath);
-                $data['comments'][$i]['index'] = $i;
-            }
-
-            if (count($data['comments'])) {
                 $comments = array_merge($comments, $data['comments']);
             }
         }
