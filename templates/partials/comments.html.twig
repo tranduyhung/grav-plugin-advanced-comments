@@ -56,7 +56,7 @@
                     {% for reply in comment.replies %}
                     <div class="reply">
                         <div class="comment-details">
-                            <span class="comment-author">{{ grav.config.site.title }}</span> <span class="comment-date">{{ reply.date|e }}</span>
+                            <span class="comment-author">{{ reply.author ?? grav.config.site.title  }}</span> <span class="comment-date">{{ reply.date|e }}</span>
                         </div>
                         <div class="comment-text">
                             {{ reply.text|striptags('<p><b><u><i><a><br>')|raw }}</div>

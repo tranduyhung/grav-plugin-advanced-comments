@@ -196,13 +196,16 @@
 
                         let comment = res.comment;
 
-                        let reply = '';
+                        let author = '';
+                        let text = '';
 
                         if (typeof(comment.replies) != 'undefined' && typeof(comment.replies[0]) != 'undefined') {
-                            reply = comment.replies[0].text ?? '';
+                            author = comment.replies[0].author ?? '';
+                            text = comment.replies[0].text ?? '';
                         }
 
-                        modal.find('textarea[name="reply"]').val(reply);
+                        modal.find('input[name="author"]').val(author);
+                        modal.find('textarea[name="text"]').val(text);
                         modal.find('#replyEditFormPage').val(page);
                         modal.find('#replyEditFormIndex').val(index);
 
@@ -596,14 +599,23 @@
             <div class="grav-loading"><div class="grav-loader">Loading...</div></div>
             <div class="error-message"></div>
             <div class="reply-form">
-                <h1></h1>
+                <h1>{{ "PLUGIN_ADVANCED_COMMENTS.REPLY"|t }}</h1>
+
+                <div class="form-field grid">
+                    <div class="form-label block size-1-4">
+                        <label>{{ "PLUGIN_ADVANCED_COMMENTS.NAME_LABEL"|t }}</label>
+                    </div>
+                    <div class="form-data block size-3-4">
+                        <input type="text" name="author">
+                    </div>
+                </div>
 
                 <div class="form-field grid">
                     <div class="form-label block size-1-4">
                         <label>{{ "PLUGIN_ADVANCED_COMMENTS.REPLY_LABEL"|t }}</label>
                     </div>
                     <div class="form-data block size-3-4">
-                        <textarea rows="5" name="reply"></textarea>
+                        <textarea rows="5" name="text"></textarea>
                     </div>
                 </div>
 

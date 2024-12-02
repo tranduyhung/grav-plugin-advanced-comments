@@ -402,8 +402,9 @@ class AdvancedCommentsPlugin extends Plugin
             $comment['replies'] = [];
 
             $comment['replies'][] = [
-                'text'  => $_POST['reply'] ?? '',
-                'date'  => date('D, d M Y H:i:s', time()),
+                'author'    => $_POST['author'] ?? '',
+                'text'      => $_POST['text'] ?? '',
+                'date'      => date('D, d M Y H:i:s', time()),
             ];
 
             $data['comments'][$index] = $comment;
