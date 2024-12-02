@@ -36,6 +36,8 @@ en:
     REPLY: Reply
     REPLY_LABEL: Reply
     REPLY_WAS_SAVED: Reply was saved
+    COMMENT_WAS_APPROVED: Comment was approved
+    COMMENT_WAS_REJECTED: Comment was rejected
 
 de:
   PLUGIN_ADVANCED_COMMENTS:

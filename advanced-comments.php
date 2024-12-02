@@ -382,9 +382,17 @@ class AdvancedCommentsPlugin extends Plugin
 
             $file->save(Yaml::dump($data));
 
+            $message = null;
+
+            if ($status == '1') {
+                $message = $language->translate('PLUGIN_ADVANCED_COMMENTS.COMMENT_WAS_APPROVED');
+            } else if ($status == '0') {
+                $message = $language->translate('PLUGIN_ADVANCED_COMMENTS.COMMENT_WAS_REJECTED');
+            }
+
             echo json_encode([
                 'status'    => 'success',
-                'message'   => $language->translate('PLUGIN_ADVANCED_COMMENTS.COMMENT_WAS_SAVED'),
+                'message'   => $message,
                 'data'      => $comment,
             ]);
         } else if ($task == 'deleteComment') {
