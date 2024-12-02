@@ -42,19 +42,30 @@
     <div class="alert">{{ form.message }}</div>
 
     {% if grav.twig.comments|length %}
-
         <h3>{{'PLUGIN_ADVANCED_COMMENTS.COMMENTS'|t}}</h3>
 
-        <table>
+        <div class="comments">
             {% for comment in comments|array_reverse %}
-            <tr>
-                <td>
-                    {{comment.text|striptags('<p><b><u><i><a><br>')|raw}}
-                    <br />
-                    {{'PLUGIN_ADVANCED_COMMENTS.WRITTEN_ON'|t}} {{comment.date|e}} {{'PLUGIN_ADVANCED_COMMENTS.BY'|t}} {{comment.author}}
-                </td>
-            </tr>
+            <div class="comment">
+                <div class="comment-details">
+                    <span class="comment-author">{{ comment.author }}</span> <span class="comment-date">{{ comment.date|e }}</span>
+                </div>
+                <div class="comment-text">{{ comment.text|striptags('<p><b><u><i><a><br>')|raw }}</div>
+
+                {% if comment.replies|length > 0 %}
+                    {% for reply in comment.replies %}
+                    <div class="reply">
+                        <div class="comment-details">
+                            <span class="comment-author">{{ grav.config.site.title }}</span> <span class="comment-date">{{ reply.date|e }}</span>
+                        </div>
+                        <div class="comment-text">
+                            {{ reply.text|striptags('<p><b><u><i><a><br>')|raw }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
             {% endfor %}
-        </table>
+        </div>
     {% endif %}
 {% endif %}

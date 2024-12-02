@@ -1,0 +1,17 @@
+.comment {
+    margin-bottom: 2em;
+}
+
+.reply {
+    margin-top: 0.5em;
+    margin-left: 2em;
+}
+
+.comment-author {
+    font-weight: bold;
+}
+
+.comment-date {
+    font-size: 0.7em;
+    font-style: italic;
+}

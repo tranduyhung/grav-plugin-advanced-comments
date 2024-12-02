@@ -85,6 +85,8 @@ class AdvancedCommentsPlugin extends Plugin
         // New way
         $this->grav['twig']->twig_vars['enable_comments_plugin'] = $enabled;
         $this->grav['twig']->twig_vars['comments'] = $comments;
+
+        $this->grav['assets']->add('plugin://advanced-comments/assets/comment.css');
     }
 
     /**
@@ -540,6 +542,7 @@ class AdvancedCommentsPlugin extends Plugin
 
         //save to cache if enabled
         $cache->save($this->comments_cache_id, $comments);
+
         return $comments;
     }
 
