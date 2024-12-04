@@ -465,9 +465,11 @@ class AdvancedCommentsPlugin extends Plugin
         }
 
         // Order files by last modified date
-        usort($files, function ($a, $b) {
-            return !($a->modifiedDate > $b->modifiedDate);
-        });
+        if ($files) {
+            usort($files, function ($a, $b) {
+                return !($a->modifiedDate > $b->modifiedDate);
+            });
+        }
 
         return $files;
     }
@@ -499,16 +501,18 @@ class AdvancedCommentsPlugin extends Plugin
                     $data['comments'][$i]['timestamp'] = $commentTimestamp;
                     $data['comments'][$i]['page'] = str_replace(DATA_DIR . 'comments', '', $file->filePath);
                     $data['comments'][$i]['index'] = $i;
-                }
 
-                $comments = array_merge($comments, $data['comments']);
+                    $comments[] =  $data['comments'][$i];
+                }
             }
         }
 
         // Order comments by date
-        usort($comments, function ($a, $b) {
-            return !($a['timestamp'] > $b['timestamp']);
-        });
+        if ($comments) {
+            usort($comments, function ($a, $b) {
+                return !($a['timestamp'] > $b['timestamp']);
+            });
+        }
 
         $totalAvailable = count($comments);
         $comments = array_slice($comments, $page * $number, $number);
