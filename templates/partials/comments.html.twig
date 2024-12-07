@@ -5,9 +5,7 @@
 
     <div id="comments"></div>
 
-    {% if form.message %}
-        <div class="alert">{{ form.message }}</div>
-    {% endif %}
+    {% include 'partials/messages.html.twig' %}
 
     <h3>{{'PLUGIN_ADVANCED_COMMENTS.ADD_COMMENT'|t}}</h3>
 

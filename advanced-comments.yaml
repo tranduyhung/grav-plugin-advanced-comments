@@ -71,5 +71,4 @@ form:
             subject: PLUGIN_ADVANCED_COMMENTS.EMAIL_NEW_COMMENT_SUBJECT
             body: "{% include 'forms/data.html.twig' %}"
         - addComment:
-        - message: PLUGIN_ADVANCED_COMMENTS.THANK_YOU_MESSAGE
         - reset: true

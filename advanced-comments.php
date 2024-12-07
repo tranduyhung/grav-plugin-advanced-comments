@@ -280,6 +280,11 @@ class AdvancedCommentsPlugin extends Plugin
                 //clear cache
                 $this->grav['cache']->delete($this->comments_cache_id);
 
+                $this->grav['messages']->add(
+                    $this->grav['language']->translate('PLUGIN_ADVANCED_COMMENTS.THANK_YOU_MESSAGE'),
+                    'info'
+                );
+
                 break;
         }
     }
