@@ -79,14 +79,18 @@ class AdvancedCommentsPlugin extends Plugin
         $enabled = $this->enable;
         $comments = $this->fetchComments();
 
-        $this->grav['twig']->enable_comments_plugin = $enabled;
-        $this->grav['twig']->comments = $comments;
+        $twig = $this->grav['twig'];
+        $twig->enable_comments_plugin = $enabled;
+        $twig->comments = $comments;
 
         // New way
-        $this->grav['twig']->twig_vars['enable_comments_plugin'] = $enabled;
-        $this->grav['twig']->twig_vars['comments'] = $comments;
+        $twig->twig_vars['enable_comments_plugin'] = $enabled;
+        $twig->twig_vars['comments'] = $comments;
 
-        $this->grav['assets']->add('plugin://advanced-comments/assets/comment.css');
+        $assets = $this->grav['assets'];
+        $assets->addCss('plugin://advanced-comments/assets/css/comment.css');
+        $assets->addJs('jquery', 101);
+        $assets->addJs('plugin://advanced-comments/assets/js/comment.js');
     }
 
     /**

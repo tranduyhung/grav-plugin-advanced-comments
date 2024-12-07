@@ -1,10 +1,18 @@
 {% if enable_comments_plugin %}
     {% set scope = scope ?: 'data.' %}
 
+    {% do assets.addJs('jquery', 101) %}
+
+    <div id="comments"></div>
+
+    {% if form.message %}
+        <div class="alert">{{ form.message }}</div>
+    {% endif %}
+
     <h3>{{'PLUGIN_ADVANCED_COMMENTS.ADD_COMMENT'|t}}</h3>
 
     <form name="{{ grav.config.plugins['advanced-comments'].form.name }}"
-          action="{{ grav.config.plugins['advanced-comments'].form.action ?  base_url ~ grav.config.plugins.advanced_comments.form.action : page.url }}"
+          action="{{ grav.config.plugins['advanced-comments'].form.action ?  base_url ~ grav.config.plugins.advanced_comments.form.action : page.url }}#comments"
           method="{{ grav.config.plugins['advanced-comments'].form.method ? grav.config.plugins['advanced-comments'].form.method|upper|default('POST') : 'POST' }}">
 
         {% for field in grav.config.plugins['advanced-comments'].form.fields %}
@@ -39,12 +47,10 @@
         {{ nonce_field('form', 'form-nonce')|raw }}
     </form>
 
-    <div class="alert">{{ form.message }}</div>
-
     {% if grav.twig.comments|length %}
         <h3>{{'PLUGIN_ADVANCED_COMMENTS.COMMENTS'|t}}</h3>
 
-        <div class="comments">
+        <div class="comments" >
             {% for comment in comments|array_reverse %}
             <div class="comment">
                 <div class="comment-details">
