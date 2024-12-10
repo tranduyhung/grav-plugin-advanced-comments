@@ -337,6 +337,8 @@ class AdvancedCommentsPlugin extends Plugin
 
         $comment = $data['comments'][$index] ?? null;
 
+        $comment['text'] = htmlspecialchars_decode($comment['text']);
+
         return $comment;
     }
 
@@ -400,13 +402,15 @@ class AdvancedCommentsPlugin extends Plugin
 
         if ($task == 'editComment') {
             $comment = $data['comments'][$index];
-            $comment['text'] = $_POST['text'] ?? '';
-            $comment['author'] = $_POST['author'] ?? '';
-            $comment['email'] = $_POST['email'] ?? '';
+            $comment['text'] = $_POST['text'] ? $this->sanitizeString($_POST['text'], true) : '';
+            $comment['author'] = $_POST['author'] ? $this->sanitizeString($_POST['author']) : '';
+            $comment['email'] = $_POST['email'] ? $this->sanitizeString($_POST['email']) : '';
 
             $data['comments'][$index] = $comment;
 
             $file->save(Yaml::dump($data));
+
+            $comment['text'] = htmlspecialchars_decode($comment['text']);
 
             echo json_encode([
                 'status'    => 'success',
