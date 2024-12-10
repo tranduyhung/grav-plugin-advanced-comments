@@ -230,6 +230,17 @@ class AdvancedCommentsPlugin extends Plugin
         }
     }
 
+    private function sanitizeString($string, $htmlAllowed = false)
+    {
+        $allowedTags = $htmlAllowed ? '<p><b><u><i><a><br>' : null;
+
+        $string = strip_tags($string, $allowedTags);
+
+        $string = htmlspecialchars($string);
+
+        return $string;
+    }
+
     /**
      * Handle form processing instructions.
      *
@@ -237,9 +248,9 @@ class AdvancedCommentsPlugin extends Plugin
      */
     public function onFormProcessed(Event $event)
     {
-        $form = $event['form'];
+        // $form = $event['form'];
         $action = $event['action'];
-        $params = $event['params'];
+        // $params = $event['params'];
 
         if (!$this->active) {
             return;
@@ -251,11 +262,11 @@ class AdvancedCommentsPlugin extends Plugin
 
                 $path = $this->grav['uri']->path();
 
-                $lang = filter_var(urldecode($post['lang']), FILTER_SANITIZE_STRING);
-                $text = filter_var(urldecode($post['text']), FILTER_SANITIZE_STRING);
-                $name = filter_var(urldecode($post['name']), FILTER_SANITIZE_STRING);
-                $email = filter_var(urldecode($post['email']), FILTER_SANITIZE_STRING);
-                $title = filter_var(urldecode($post['title']), FILTER_SANITIZE_STRING);
+                $lang = $post['lang'] ? $this->sanitizeString($post['lang']) : '';
+                $text = $post['text'] ? $this->sanitizeString($post['text'], true) : '';
+                $name = $post['name'] ? $this->sanitizeString($post['name']) : '';
+                $email = $post['email'] ? $this->sanitizeString($post['email']) : '';
+                $title = $post['title'] ? $this->sanitizeString($post['title']) : '';
 
                 if (isset($this->grav['user'])) {
                     $user = $this->grav['user'];
@@ -282,7 +293,6 @@ class AdvancedCommentsPlugin extends Plugin
                         'date' => date('D, d M Y H:i:s', time()),
                         'author' => $name,
                         'email' => $email,
-                        'approved' => 0,
                     ];
                 } else {
                     $data = array(
@@ -293,7 +303,6 @@ class AdvancedCommentsPlugin extends Plugin
                             'date' => date('D, d M Y H:i:s', time()),
                             'author' => $name,
                             'email' => $email,
-                            'approved' => 0,
                         ])
                     );
                 }
@@ -533,6 +542,7 @@ class AdvancedCommentsPlugin extends Plugin
                     $data['comments'][$i]['timestamp'] = $commentTimestamp;
                     $data['comments'][$i]['page'] = str_replace(DATA_DIR . 'comments', '', $file->filePath);
                     $data['comments'][$i]['index'] = $i;
+                    $data['comments'][$i]['text'] = htmlspecialchars_decode($data['comments'][$i]['text']);
 
                     $comments[] =  $data['comments'][$i];
                 }
@@ -582,6 +592,8 @@ class AdvancedCommentsPlugin extends Plugin
                 if (!isset($comment['approved']) || $comment['approved'] != 1) {
                     unset($comments[$k]);
                 }
+
+                $comments[$k]['text'] = htmlspecialchars_decode($comments[$k]['text']);
             }
         }
 
