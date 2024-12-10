@@ -19,7 +19,7 @@ jQuery('document').ready(function() {
                   var url = window.prompt('Enter the link URL');
 
                   if (url) {
-                    exec('createLink', url);
+                    pell.exec('createLink', url);
                   }
                 }
               },

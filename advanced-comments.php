@@ -591,9 +591,9 @@ class AdvancedCommentsPlugin extends Plugin
             foreach ($comments as $k => $comment) {
                 if (!isset($comment['approved']) || $comment['approved'] != 1) {
                     unset($comments[$k]);
+                } else {
+                    $comments[$k]['text'] = htmlspecialchars_decode($comments[$k]['text']);
                 }
-
-                $comments[$k]['text'] = htmlspecialchars_decode($comments[$k]['text']);
             }
         }
 
