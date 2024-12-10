@@ -75,11 +75,13 @@ class AdvancedCommentsPlugin extends Plugin
 
     public function onTwigSiteVariables()
     {
+        $grav = $this->grav;
+
         // Old way
         $enabled = $this->enable;
         $comments = $this->fetchComments();
 
-        $twig = $this->grav['twig'];
+        $twig = $grav['twig'];
         $twig->enable_comments_plugin = $enabled;
         $twig->comments = $comments;
 
@@ -87,10 +89,31 @@ class AdvancedCommentsPlugin extends Plugin
         $twig->twig_vars['enable_comments_plugin'] = $enabled;
         $twig->twig_vars['comments'] = $comments;
 
-        $assets = $this->grav['assets'];
+        $assets = $grav['assets'];
+        $assets->addCss('https://unpkg.com/pell/dist/pell.min.css');
         $assets->addCss('plugin://advanced-comments/assets/css/comment.css');
+
         $assets->addJs('jquery', 101);
+        $assets->addJs('https://unpkg.com/pell');
         $assets->addJs('plugin://advanced-comments/assets/js/comment.js');
+
+        // Show the editor's placeholder if it is defined in the form.
+        $textPlaceholder = null;
+        $form = $grav['config']->get('plugins.advanced-comments.form');
+
+        if (isset($form['fields'])) {
+            foreach ($form['fields'] as $field) {
+                if (isset($field['name']) && $field['name'] == 'text' && isset($field['placeholder'])) {
+                    $textPlaceholder = $grav['language']->translate($field['placeholder']);
+
+                    break;
+                }
+            }
+        }
+
+        if ($textPlaceholder) {
+            $assets->addInlineCSS('.pell-content:empty:before { content: "' . $textPlaceholder . '"; }');
+        }
     }
 
     /**

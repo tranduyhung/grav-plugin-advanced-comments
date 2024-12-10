@@ -15,3 +15,11 @@
     font-size: 0.7em;
     font-style: italic;
 }
+
+.comment-text-container {
+    display: none;
+}
+
+.pell-content:empty:before {
+    opacity: 0.65;
+}

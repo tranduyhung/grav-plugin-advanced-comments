@@ -1,7 +1,10 @@
 {% if enable_comments_plugin %}
     {% set scope = scope ?: 'data.' %}
+    {% set config = grav.config.plugins['advanced-comments'] %}
 
-    {% do assets.addJs('jquery', 101) %}
+    <script>
+    var commentLinkIcon = '{{ config.link_icon ? config.link_icon|raw : "&#128279;" }}';
+    </script>
 
     <div id="comments"></div>
 
@@ -9,11 +12,11 @@
 
     <h3>{{'PLUGIN_ADVANCED_COMMENTS.ADD_COMMENT'|t}}</h3>
 
-    <form name="{{ grav.config.plugins['advanced-comments'].form.name }}"
-          action="{{ grav.config.plugins['advanced-comments'].form.action ?  base_url ~ grav.config.plugins.advanced_comments.form.action : page.url }}#comments"
-          method="{{ grav.config.plugins['advanced-comments'].form.method ? grav.config.plugins['advanced-comments'].form.method|upper|default('POST') : 'POST' }}">
+    <form name="{{ config.form.name }}"
+          action="{{ config.form.action ?  base_url ~ grav.config.plugins.advanced_comments.form.action : page.url }}#comments"
+          method="{{ config.form.method ? config.form.method|upper|default('POST') : 'POST' }}">
 
-        {% for field in grav.config.plugins['advanced-comments'].form.fields %}
+        {% for field in config.form.fields %}
             {% set value = form.value(field.name) %}
             {% if field.evaluateDefault %}
                 {% set value = evaluate(field.evaluateDefault) %}
@@ -23,22 +26,34 @@
                     <input type="hidden" name="{{ (scope ~ field.name)|fieldName }}" value="{{grav.user.fullname}}">
                 {% elseif field.name == 'email' %}
                     <input type="hidden" name="{{ (scope ~ field.name)|fieldName }}" value="{{grav.user.email}}">
+                {% elseif field.name == 'text' %}
+                    <div class="comment-text-container">
+                        {% include "forms/fields/#{field.type}/#{field.type}.html.twig" %}
+                    </div>
+                    <div id="editor" class="pell"></div>
                 {% else %}
                     <div>
                         {% include "forms/fields/#{field.type}/#{field.type}.html.twig" %}
                     </div>
                 {% endif %}
             {% else %}
-                <div>
-                    {% include "forms/fields/#{field.type}/#{field.type}.html.twig" %}
-                </div>
+                {% if field.name == 'text' %}
+                    <div class="comment-text-container">
+                        {% include "forms/fields/#{field.type}/#{field.type}.html.twig" %}
+                    </div>
+                    <div id="editor" class="pell"></div>
+                {% else %}
+                    <div>
+                        {% include "forms/fields/#{field.type}/#{field.type}.html.twig" %}
+                    </div>
+                {% endif %}
             {% endif %}
         {% endfor %}
         {% include "forms/fields/formname/formname.html.twig" %}
 
         <div class="buttons">
-        {% for button in grav.config.plugins['advanced-comments'].form.buttons %}
-            <button class="button" type="{{ button.type|default('submit') }}">{{ button.value|t|default('Submit') }}</button>
+        {% for button in config.form.buttons %}
+            <button class="{{ button.classes }}" type="{{ button.type|default('submit') }}">{{ button.value|t|default('Submit') }}</button>
         {% endfor %}
         </div>
 

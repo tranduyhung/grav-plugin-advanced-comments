@@ -63,3 +63,9 @@ form:
       validate:
           type: number
           min: 1
+
+    link_icon:
+      type: text
+      default: '&#128279;'
+      label: PLUGIN_ADVANCED_COMMENTS.LINK_ICON
+      help: PLUGIN_ADVANCED_COMMENTS.LINK_ICON_HELP

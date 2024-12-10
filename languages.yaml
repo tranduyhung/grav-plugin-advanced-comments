@@ -38,6 +38,8 @@ en:
     REPLY_WAS_SAVED: Reply was saved
     COMMENT_WAS_APPROVED: Comment was approved
     COMMENT_WAS_REJECTED: Comment was rejected
+    LINK_ICON: Editor's link icon
+    LINK_ICON_HELP: 'The icon used for the link button in the comment editor. Example: <i class="fa fa-link" aria-hidden="true"></i> for FontAwesome/ForkAwesome, or &#128279; HTML Entity'
 
 de:
   PLUGIN_ADVANCED_COMMENTS:
