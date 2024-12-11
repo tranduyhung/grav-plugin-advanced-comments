@@ -190,7 +190,7 @@ class AdvancedCommentsPlugin extends Plugin
 
         $task = $uri->query('task');
 
-        if (strtolower($_SERVER['REQUEST_METHOD']) == 'post') {
+        if (strtolower($_SERVER['REQUEST_METHOD']) == 'post' && $task) {
             $this->handlePostRequests();
 
             exit;
