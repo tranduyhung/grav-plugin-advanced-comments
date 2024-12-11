@@ -73,6 +73,18 @@ class AdvancedCommentsPlugin extends Plugin
         $event->header = $header;
     }
 
+    public function onTwigAdminVariables()
+    {
+        $grav = $this->grav;
+
+        $assets = $grav['assets'];
+        $assets->addCss('https://unpkg.com/pell/dist/pell.min.css');
+        //$assets->addCss('plugin://advanced-comments/assets/css/comment.css');
+
+        $assets->addJs('jquery', 101);
+        $assets->addJs('https://unpkg.com/pell');
+    }
+
     public function onTwigSiteVariables()
     {
         $grav = $this->grav;
@@ -179,6 +191,7 @@ class AdvancedCommentsPlugin extends Plugin
             'onTwigTemplatePaths' => ['onTwigAdminTemplatePaths', 0],
             'onAdminMenu' => ['onAdminMenu', 0],
             'onDataTypeExcludeFromDataManagerPluginHook' => ['onDataTypeExcludeFromDataManagerPluginHook', 0],
+            'onTwigSiteVariables' => ['onTwigAdminVariables', 0]
         ]);
 
         $grav = $this->grav;
