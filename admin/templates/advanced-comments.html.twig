@@ -108,7 +108,7 @@
 
                         response.comments.forEach(function(comment) {
                             let html = '<tr data-page="' + comment.page + '" data-index="' + comment.index + '">' +
-                                '<td class="comment-author">' + comment.author + '</td>' +
+                                '<td class="comment-author"><strong>' + comment.author + '</strong></td>' +
                                 '<td class="comment-text">' + comment.text + '</td>' +
                                 '<td class="comment-details"><strong>Page</strong>: ' + comment.pageTitle + '<br>' +
                                 '<strong>Date</strong>: ' + comment.date + '</td><td class="comment-approved">';
@@ -557,7 +557,7 @@
                 {% for comment in grav.twig.comments.comments %}
                     <tr data-page="{{ comment.page }}" data-index="{{ comment.index }}">
                         <td class="comment-author">
-                            {{comment.author}}
+                            <strong>{{ comment.author }}</strong>
                             {% if comment.email %}
                                 <br>{{ comment.email }}
                             {% endif %}
