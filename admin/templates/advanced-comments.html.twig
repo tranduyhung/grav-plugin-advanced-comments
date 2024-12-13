@@ -111,14 +111,15 @@
                                 '<td class="comment-author"><strong>' + comment.author + '</strong></td>' +
                                 '<td class="comment-text">' + comment.text + '</td>' +
                                 '<td class="comment-details"><strong>Page</strong>: ' + comment.pageTitle + '<br>' +
-                                '<strong>Date</strong>: ' + comment.date + '</td><td class="comment-approved">';
+                                '<strong>Date</strong>: ' + comment.date + '<br>' +
+                                '<strong>Status</strong>: ';
 
                             if (comment.approved == '1') {
-                                html += "{{ 'PLUGIN_ADVANCED_COMMENTS.STATUS_APPROVED'|t }}";
+                                html += '<span class="badge note">' + "{{ 'PLUGIN_ADVANCED_COMMENTS.STATUS_APPROVED'|t }}" + '</span>';
                             } else if (comment.approved == '0') {
-                                html += "{{ 'PLUGIN_ADVANCED_COMMENTS.STATUS_REJECTED'|t }}";
+                                html += '<span class="badge error">' + "{{ 'PLUGIN_ADVANCED_COMMENTS.STATUS_REJECTED'|t }}" + '</span>';
                             } else {
-                                html += "{{ 'PLUGIN_ADVANCED_COMMENTS.STATUS_PENDING'|t }}";
+                                html += '<span class="badge">' + "{{ 'PLUGIN_ADVANCED_COMMENTS.STATUS_PENDING'|t }}" + '</span>';
                             }
 
                             html += '</td><td>';
@@ -549,7 +550,6 @@
                     <th class="author">Author</th>
                     <th class="comment">Comment</th>
                     <th class="details">Details</th>
-                    <th>Status</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -565,15 +565,14 @@
                         <td class="comment-text">{{comment.text|striptags('<p><b><u><i><a><br>')|raw}}</td>
                         <td class="comment-details">
                             <strong>Page</strong>: {{comment.pageTitle}}<br>
-                            <strong>Date</strong>: {{comment.date}}
-                        </td>
-                        <td class="comment-approved">
+                            <strong>Date</strong>: {{comment.date}}<br>
+                             <strong>Status</strong>:
                             {% if comment.approved == '1' %}
-                                {{ 'PLUGIN_ADVANCED_COMMENTS.STATUS_APPROVED'|t }}
+                                <span class="badge note">{{ 'PLUGIN_ADVANCED_COMMENTS.STATUS_APPROVED'|t }}</span>
                             {% elseif comment.approved == '0' %}
-                                {{ 'PLUGIN_ADVANCED_COMMENTS.STATUS_REJECTED'|t }}
+                                <span class="badge error">{{ 'PLUGIN_ADVANCED_COMMENTS.STATUS_REJECTED'|t }}</span>
                             {% else %}
-                                {{ 'PLUGIN_ADVANCED_COMMENTS.STATUS_PENDING'|t }}
+                                <span class="badge">{{ 'PLUGIN_ADVANCED_COMMENTS.STATUS_PENDING'|t }}</span>
                             {% endif %}
                         </td>
                         <td>
