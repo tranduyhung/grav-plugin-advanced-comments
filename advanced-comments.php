@@ -269,69 +269,70 @@ class AdvancedCommentsPlugin extends Plugin
             return;
         }
 
-        switch ($action) {
-            case 'addComment':
-                $post = isset($_POST['data']) ? $_POST['data'] : [];
-
-                $path = $this->grav['uri']->path();
-
-                $lang = $post['lang'] ? $this->sanitizeString($post['lang']) : '';
-                $text = $post['text'] ? $this->sanitizeString($post['text'], true) : '';
-                $name = $post['name'] ? $this->sanitizeString($post['name']) : '';
-                $email = $post['email'] ? $this->sanitizeString($post['email']) : '';
-                $title = $post['title'] ? $this->sanitizeString($post['title']) : '';
-
-                if (isset($this->grav['user'])) {
-                    $user = $this->grav['user'];
-                    if ($user->authenticated) {
-                        $name = $user->fullname;
-                        $email = $user->email;
-                    }
-                }
-
-                /** @var Language $language */
-                $language = $this->grav['language'];
-                $lang = $language->getLanguage();
-
-                $filename = DATA_DIR . 'comments';
-                $filename .= ($lang ? '/' . $lang : '');
-                $filename .= $path . '.yaml';
-                $file = File::instance($filename);
-
-                if (file_exists($filename)) {
-                    $data = Yaml::parse($file->content());
-
-                    $data['comments'][] = [
-                        'text' => $text,
-                        'date' => date('D, d M Y H:i:s', time()),
-                        'author' => $name,
-                        'email' => $email,
-                    ];
-                } else {
-                    $data = array(
-                        'title' => $title,
-                        'lang' => $lang,
-                        'comments' => array([
-                            'text' => $text,
-                            'date' => date('D, d M Y H:i:s', time()),
-                            'author' => $name,
-                            'email' => $email,
-                        ])
-                    );
-                }
-
-                $file->save(Yaml::dump($data));
-
-                //clear cache
-                $this->grav['cache']->delete($this->comments_cache_id);
-
-                $this->grav['messages']->add(
-                    $this->grav['language']->translate('PLUGIN_ADVANCED_COMMENTS.THANK_YOU_MESSAGE'),
-                    'info'
-                );
-
-                break;
+        if ($action != 'addComment') {
+            return;
         }
+
+        $post = isset($_POST['data']) ? $_POST['data'] : [];
+
+        $path = $this->grav['uri']->path();
+
+        $lang = $post['lang'] ? $this->sanitizeString($post['lang']) : '';
+        $text = $post['text'] ? $this->sanitizeString($post['text'], true) : '';
+        $name = $post['name'] ? $this->sanitizeString($post['name']) : '';
+        $email = $post['email'] ? $this->sanitizeString($post['email']) : '';
+        $title = $post['title'] ? $this->sanitizeString($post['title']) : '';
+
+        if (isset($this->grav['user'])) {
+            $user = $this->grav['user'];
+            if ($user->authenticated) {
+                $name = $user->fullname;
+                $email = $user->email;
+            }
+        }
+
+        /** @var Language $language */
+        $language = $this->grav['language'];
+        $lang = $language->getLanguage();
+
+        $filename = DATA_DIR . 'comments';
+        $filename .= ($lang ? '/' . $lang : '');
+        $filename .= $path . '.yaml';
+        $file = File::instance($filename);
+
+        if (file_exists($filename)) {
+            $data = Yaml::parse($file->content());
+
+            $data['comments'][] = [
+                'text' => $text,
+                'date' => date('D, d M Y H:i:s', time()),
+                'author' => $name,
+                'email' => $email,
+            ];
+        } else {
+            $data = array(
+                'title' => $title,
+                'lang' => $lang,
+                'comments' => array([
+                    'text' => $text,
+                    'date' => date('D, d M Y H:i:s', time()),
+                    'author' => $name,
+                    'email' => $email,
+                ])
+            );
+        }
+
+        $file->save(Yaml::dump($data));
+
+        //clear cache
+        $this->grav['cache']->delete($this->comments_cache_id);
+
+        $this->grav['messages']->add(
+            $this->grav['language']->translate('PLUGIN_ADVANCED_COMMENTS.THANK_YOU_MESSAGE'),
+            'info'
+        );
+
+        $this->grav->redirect($this->grav['uri']->route());
     }
 
     private function getComment($page, $index)
